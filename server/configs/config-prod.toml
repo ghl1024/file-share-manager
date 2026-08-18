@@ -1,0 +1,125 @@
+[server]
+  host = "0.0.0.0"
+  port = 29000
+  mode = "release"
+  web_url = "https://fileshare.example.com"
+  read_header_timeout_seconds = 5
+  read_timeout_seconds = 30
+  write_timeout_seconds = 60
+  idle_timeout_seconds = 120
+  shutdown_timeout_seconds = 15
+  max_request_body_bytes = 10485760
+  max_upload_body_bytes = 115343360
+
+[database]
+  host = "db"
+  port = 3306
+  user = "fileshare"
+  password = ""
+  dbname = "fileshare"
+  max_idle_conns = 10
+  max_open_conns = 100
+  auto_migrate = false
+  log_queries = false
+
+[audit_database]
+  host = "db"
+  port = 3306
+  user = ""
+  password = ""
+  dbname = "fileshare"
+  max_idle_conns = 2
+  max_open_conns = 5
+
+[storage]
+  root_path = "/data/fileshare"
+  staging_path = "/data/fileshare/staging"
+  mode = "local"
+  min_free_bytes = 5368709120
+  warn_free_percent = 20
+  min_free_percent = 10
+  health_check_interval_minutes = 5
+
+[upload]
+  allowed_extensions = [".txt", ".md", ".csv", ".json", ".xml", ".yaml", ".yml", ".log", ".conf", ".ini", ".rtf", ".pdf", ".doc", ".docx", ".docm", ".xls", ".xlsx", ".xlsm", ".ppt", ".pptx", ".pptm", ".odt", ".ods", ".odp", ".zip", ".7z", ".rar", ".tar", ".gz", ".tgz", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg", ".mp3", ".wav", ".m4a", ".mp4", ".mov", ".avi", ".mkv", ".webm"]
+  allow_mime_mismatch = false
+
+[preview]
+  max_binary_bytes = 26214400
+  max_text_bytes = 1048576
+
+[batch_download]
+  max_files = 1000
+  max_total_bytes = 5368709120
+  retention_hours = 24
+  worker_count = 2
+
+[jwt]
+  secret = ""
+  expires_hours = 24
+
+[backup]
+type = "local"
+local_path = "/data/fileshare/backup"
+prefix = "fileshare-backup/"
+# Inject FILESHARE_BACKUP_MANIFEST_KEY; never commit a production key.
+manifest_encryption_key = ""
+# Enable only after sizing the backup I/O window for the deployment.
+compaction_enabled = false
+compaction_interval_minutes = 60
+compaction_incremental_threshold = 30
+
+[archive]
+enabled = false
+after_days = 365
+batch_size = 100
+prefix = "fileshare-archive/"
+
+[audit]
+hot_retention_days = 365
+export_retention_hours = 24
+archive_enabled = false
+archive_interval_minutes = 60
+archive_batch_size = 10000
+archive_prefix = "fileshare-audit/"
+
+[clamav]
+host = ""
+port = 3310
+timeout_seconds = 60
+virus_db_max_age_hours = 48
+retry_max_attempts = 3
+retry_interval_minutes = 5
+retry_batch_size = 50
+
+[notification]
+# Inject FILESHARE_NOTIFICATION_CREDENTIAL_KEY as base64-encoded 32 bytes.
+credential_encryption_key = ""
+worker_count = 2
+poll_interval_seconds = 5
+batch_size = 50
+max_attempts = 5
+base_retry_seconds = 30
+max_retry_seconds = 3600
+
+[lifecycle]
+interval_minutes = 15
+trash_retention_days = 30
+upload_session_hours = 24
+quarantine_retention_days = 7
+reconcile_batch_size = 100
+
+[log]
+  level = "info"
+  filename = "logs/fileshare.log"
+  directory = "logs/server"
+  format = "json"
+  split_by_level = true
+  max_size = 100
+  max_backups = 30
+  max_age = 7
+  retention_days = 7
+  compress = true
+  console = false
+  rotation_time = "hour"
+  reload_on_sighup = true
