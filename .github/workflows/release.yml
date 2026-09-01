@@ -50,7 +50,7 @@ jobs:
           echo "build_time=$(git show -s --format=%cI HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6 # v6.4.0
+        uses: goreleaser/goreleaser-action@v7 # v6.4.0
         with:
           distribution: goreleaser
           version: v2.17.1
