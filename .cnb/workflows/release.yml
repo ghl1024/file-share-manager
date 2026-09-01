@@ -1,0 +1,32 @@
+v*:
+  tag_push:
+    - name: release
+      runner:
+        cpus: 4
+      stages:
+        - name: 构建 Frontend 发布资源
+          image: node:22-alpine
+          script: |
+            cd frontend
+            npm ci
+            export VITE_APP_VERSION="${CNB_BRANCH}"
+            export VITE_GIT_COMMIT="${CNB_COMMIT}"
+            export VITE_BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            npm run build:prod
+        - name: 构建跨平台发布包
+          image: goreleaser/goreleaser:v2.17.1
+          script: |
+            export GOPROXY=https://goproxy.cn,direct
+            export GOVERSION="$(go env GOVERSION)"
+            goreleaser release --clean --skip=before --skip=publish --snapshot
+        - name: 创建 CNB Release
+          type: git:release
+          options:
+            tag: ${CNB_BRANCH}
+            title: File Share Manager ${CNB_BRANCH}
+        - name: 上传 CNB Release 附件
+          image: cnbcool/attachments:latest
+          settings:
+            attachments:
+              - dist/*.tar.gz
+              - dist/checksums.txt

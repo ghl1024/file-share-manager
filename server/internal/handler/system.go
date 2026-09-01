@@ -38,6 +38,18 @@ func NewSystemHandler() *SystemHandler {
 	return &SystemHandler{ldapConfigDAO: dao.NewLDAPConfigDAO(), ldap: ldapservice.NewService(), ldapSync: ldapsync.NewService()}
 }
 
+// @Summary Config
+// @Description Handles GET /api/fileshare/v1/management/system/configs.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/configs [get]
 func (h *SystemHandler) Config(c *gin.Context) {
 	cfg := config.GetConfig()
 	if cfg == nil {
@@ -67,6 +79,18 @@ func (h *SystemHandler) Config(c *gin.Context) {
 	})
 }
 
+// @Summary Get L D A P
+// @Description Handles GET /api/fileshare/v1/management/system/ldap.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/ldap [get]
 func (h *SystemHandler) GetLDAP(c *gin.Context) {
 	cfg, err := h.ldapConfigDAO.Get()
 	if err != nil {
@@ -79,6 +103,20 @@ func (h *SystemHandler) GetLDAP(c *gin.Context) {
 	response.Success(c, ldapConfigResponse(cfg))
 }
 
+// @Summary Save L D A P
+// @Description Handles POST /api/fileshare/v1/management/system/ldap.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/ldap [post]
 func (h *SystemHandler) SaveLDAP(c *gin.Context) {
 	var req ldapConfigRequest
 	if !request.BindJSON(c, &req) {
@@ -152,6 +190,18 @@ func (h *SystemHandler) SaveLDAP(c *gin.Context) {
 	response.SuccessWithMessage(c, "保存成功", ldapConfigResponse(saved))
 }
 
+// @Summary Clam A V Health
+// @Description Handles GET /api/fileshare/v1/management/system/clamav/health.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/clamav/health [get]
 func (h *SystemHandler) ClamAVHealth(c *gin.Context) {
 	health, err := clamav.CheckHealth(c.Request.Context())
 	if err != nil {
@@ -161,6 +211,20 @@ func (h *SystemHandler) ClamAVHealth(c *gin.Context) {
 	response.Success(c, health)
 }
 
+// @Summary L D A P Test
+// @Description Handles POST /api/fileshare/v1/management/system/ldap/test.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/ldap/test [post]
 func (h *SystemHandler) LDAPTest(c *gin.Context) {
 	var req ldapConfigRequest
 	if !request.BindJSON(c, &req) {
@@ -211,6 +275,19 @@ func (h *SystemHandler) LDAPTest(c *gin.Context) {
 	response.Success(c, gin.H{"reachable": true})
 }
 
+// @Summary L D A P Manual Sync
+// @Description Handles POST /api/fileshare/v1/management/system/ldap/sync.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/ldap/sync [post]
 func (h *SystemHandler) LDAPManualSync(c *gin.Context) {
 	err := h.ldapSync.StartAsync("manual")
 	if err == nil {
@@ -228,6 +305,20 @@ func (h *SystemHandler) LDAPManualSync(c *gin.Context) {
 	response.InternalError(c, "启动 LDAP 同步任务失败", err)
 }
 
+// @Summary L D A P Sync History
+// @Description Handles GET /api/fileshare/v1/management/system/ldap/history.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/ldap/history [get]
 func (h *SystemHandler) LDAPSyncHistory(c *gin.Context) {
 	page, pageSize, _ := pagination.ParseGinContextWithOptions(c, pagination.Options{
 		DefaultPage:     1,
@@ -242,6 +333,18 @@ func (h *SystemHandler) LDAPSyncHistory(c *gin.Context) {
 	response.SuccessWithPage(c, result.List, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary Storage Health
+// @Description Handles GET /api/fileshare/v1/management/system/storage/health.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/storage/health [get]
 func (h *SystemHandler) StorageHealth(c *gin.Context) {
 	cfg := config.GetConfig()
 	if cfg == nil {

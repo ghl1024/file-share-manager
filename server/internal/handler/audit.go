@@ -33,6 +33,35 @@ func NewAuditHandler() *AuditHandler {
 	return &AuditHandler{logs: dao.NewOperationLogDAO()}
 }
 
+// @Summary List
+// @Description Handles GET /api/fileshare/v1/management/audit/logs and GET /api/fileshare/v1/management/audit/events.
+// @Tags Audit
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param action query string false "action"
+// @Param actor_type query string false "actor_type"
+// @Param category query string false "category"
+// @Param from query string false "from"
+// @Param ip query string false "ip"
+// @Param method query string false "method"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Param request_id query string false "request_id"
+// @Param result query string false "result"
+// @Param severity query string false "severity"
+// @Param status query string false "status"
+// @Param target_id query string false "target_id"
+// @Param target_type query string false "target_type"
+// @Param to query string false "to"
+// @Param username query string false "username"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/audit/logs [get]
+// @Router /management/audit/events [get]
 func (h *AuditHandler) List(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -51,6 +80,19 @@ func (h *AuditHandler) List(c *gin.Context) {
 	response.SuccessWithPage(c, logs.List, logs.Total, logs.Page, logs.PageSize)
 }
 
+// @Summary Detail
+// @Description Handles GET /api/fileshare/v1/management/audit/events/{id}.
+// @Tags Audit
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/audit/events/{id} [get]
 func (h *AuditHandler) Detail(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -73,6 +115,33 @@ func (h *AuditHandler) Detail(c *gin.Context) {
 	response.Success(c, log)
 }
 
+// @Summary Security Events
+// @Description Handles GET /api/fileshare/v1/management/audit/security-events.
+// @Tags Audit
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param action query string false "action"
+// @Param actor_type query string false "actor_type"
+// @Param from query string false "from"
+// @Param ip query string false "ip"
+// @Param method query string false "method"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Param request_id query string false "request_id"
+// @Param result query string false "result"
+// @Param severity query string false "severity"
+// @Param status query string false "status"
+// @Param target_id query string false "target_id"
+// @Param target_type query string false "target_type"
+// @Param to query string false "to"
+// @Param username query string false "username"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/audit/security-events [get]
 func (h *AuditHandler) SecurityEvents(c *gin.Context) {
 	query := c.Request.URL.Query()
 	query.Set("category", "security")
@@ -80,6 +149,18 @@ func (h *AuditHandler) SecurityEvents(c *gin.Context) {
 	h.List(c)
 }
 
+// @Summary Policy
+// @Description Handles GET /api/fileshare/v1/management/audit/policy.
+// @Tags Audit
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/audit/policy [get]
 func (h *AuditHandler) Policy(c *gin.Context) {
 	if _, ok := actorFromContext(c); !ok {
 		return
@@ -100,6 +181,19 @@ func (h *AuditHandler) Policy(c *gin.Context) {
 	})
 }
 
+// @Summary Verify Stream
+// @Description Handles GET /api/fileshare/v1/management/audit/streams/{workspace_id}/verify.
+// @Tags Audit
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param workspace_id path string true "workspace_id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/audit/streams/{workspace_id}/verify [get]
 func (h *AuditHandler) VerifyStream(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {

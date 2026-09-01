@@ -58,6 +58,21 @@ func NewGroupHandler() *GroupHandler {
 }
 
 // CreateGroup 在工作空间内创建组
+// @Summary Create Group
+// @Description Handles POST /api/fileshare/v1/management/workspaces/{wid}/groups.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param wid path string true "wid"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/groups [post]
 func (h *GroupHandler) CreateGroup(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -109,6 +124,22 @@ func (h *GroupHandler) CreateGroup(c *gin.Context) {
 	response.SuccessWithMessage(c, "创建成功", gin.H{"id": group.ID, "name": group.Name})
 }
 
+// @Summary Update Group
+// @Description Handles PUT /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param gid path string true "gid"
+// @Param wid path string true "wid"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/groups/{gid} [put]
 func (h *GroupHandler) UpdateGroup(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -167,6 +198,22 @@ func (h *GroupHandler) UpdateGroup(c *gin.Context) {
 }
 
 // ListGroups 列出工作空间内的组
+// @Summary List Groups
+// @Description Handles GET /api/fileshare/v1/management/workspaces/{wid}/groups.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param wid path string true "wid"
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/groups [get]
 func (h *GroupHandler) ListGroups(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -192,6 +239,19 @@ func (h *GroupHandler) ListGroups(c *gin.Context) {
 
 // ListDirectory returns the complete group option set used by the ACL tree.
 // Group DNs are reduced to organizational labels and are not exposed.
+// @Summary List Directory
+// @Description Handles GET /api/fileshare/v1/management/workspaces/{wid}/groups/directory.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param wid path string true "wid"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/groups/directory [get]
 func (h *GroupHandler) ListDirectory(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -227,6 +287,21 @@ func groupDirectoryItems(groups []model.UserGroup) []groupDirectoryItem {
 	return items
 }
 
+// @Summary Delete Group
+// @Description Handles DELETE /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param gid path string true "gid"
+// @Param wid path string true "wid"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/groups/{gid} [delete]
 func (h *GroupHandler) DeleteGroup(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -276,6 +351,23 @@ func (h *GroupHandler) DeleteGroup(c *gin.Context) {
 	response.SuccessWithMessage(c, "删除成功", nil)
 }
 
+// @Summary List Members
+// @Description Handles GET /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}/members.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param gid path string true "gid"
+// @Param wid path string true "wid"
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/groups/{gid}/members [get]
 func (h *GroupHandler) ListMembers(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -309,6 +401,22 @@ func (h *GroupHandler) ListMembers(c *gin.Context) {
 	response.SuccessWithPage(c, members.List, members.Total, members.Page, members.PageSize)
 }
 
+// @Summary Remove Member
+// @Description Handles DELETE /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}/members/{uid}.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param gid path string true "gid"
+// @Param uid path string true "uid"
+// @Param wid path string true "wid"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/groups/{gid}/members/{uid} [delete]
 func (h *GroupHandler) RemoveMember(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -364,6 +472,22 @@ func (h *GroupHandler) RemoveMember(c *gin.Context) {
 }
 
 // AddMemberToGroup 将用户添加到组内
+// @Summary Add Member To Group
+// @Description Handles POST /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}/members.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param gid path string true "gid"
+// @Param wid path string true "wid"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/groups/{gid}/members [post]
 func (h *GroupHandler) AddMemberToGroup(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {

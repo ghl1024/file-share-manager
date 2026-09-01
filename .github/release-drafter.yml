@@ -1,0 +1,34 @@
+name-template: 'v$NEXT_PATCH_VERSION'
+tag-template: 'v$NEXT_PATCH_VERSION'
+version-template: '$MAJOR.$MINOR.$PATCH'
+categories:
+  - title: 新功能
+    labels:
+      - feature
+      - enhancement
+  - title: 缺陷修复
+    labels:
+      - fix
+      - bug
+      - bugfix
+  - title: 安全更新
+    labels:
+      - security
+  - title: 文档
+    labels:
+      - documentation
+  - title: 维护与重构
+    labels:
+      - chore
+      - dependencies
+      - refactor
+exclude-labels:
+  - reverted
+  - no-changelog
+  - skip-changelog
+  - invalid
+change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
+template: |
+  ## 变更内容
+
+  $CHANGES

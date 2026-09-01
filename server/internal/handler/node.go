@@ -48,6 +48,20 @@ func NewNodeHandler() *NodeHandler {
 	}
 }
 
+// @Summary Create Folder
+// @Description Handles POST /api/fileshare/v1/management/folders.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/folders [post]
 func (h *NodeHandler) CreateFolder(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -117,10 +131,41 @@ func (h *NodeHandler) CreateFolder(c *gin.Context) {
 	response.Success(c, node)
 }
 
+// @Summary List Roots
+// @Description Handles GET /api/fileshare/v1/management/folders/roots.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/folders/roots [get]
 func (h *NodeHandler) ListRoots(c *gin.Context) {
 	h.listChildren(c, nil)
 }
 
+// @Summary List Children
+// @Description Handles GET /api/fileshare/v1/management/folders/{id}/children.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/folders/{id}/children [get]
 func (h *NodeHandler) ListChildren(c *gin.Context) {
 	parentID, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -130,6 +175,22 @@ func (h *NodeHandler) ListChildren(c *gin.Context) {
 	h.listChildren(c, &parentID)
 }
 
+// @Summary Rename
+// @Description Handles PUT /api/fileshare/v1/management/folders/{id} and PUT /api/fileshare/v1/management/nodes/{id}.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/folders/{id} [put]
+// @Router /management/nodes/{id} [put]
 func (h *NodeHandler) Rename(c *gin.Context) {
 	actor, node, ok := h.authorizeWrite(c, "active")
 	if !ok {
@@ -163,6 +224,21 @@ func (h *NodeHandler) Rename(c *gin.Context) {
 	response.Success(c, gin.H{"id": node.ID, "name": name})
 }
 
+// @Summary Move
+// @Description Handles POST /api/fileshare/v1/management/nodes/{id}/move.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/move [post]
 func (h *NodeHandler) Move(c *gin.Context) {
 	actor, node, ok := h.authorizeWrite(c, "active")
 	if !ok {
@@ -228,6 +304,20 @@ func (h *NodeHandler) Move(c *gin.Context) {
 	response.Success(c, gin.H{"id": node.ID, "parent_id": req.ParentID})
 }
 
+// @Summary Trash
+// @Description Handles DELETE /api/fileshare/v1/management/nodes/{id}.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id} [delete]
 func (h *NodeHandler) Trash(c *gin.Context) {
 	actor, node, ok := h.authorizeWrite(c, "active")
 	if !ok {
@@ -245,6 +335,20 @@ func (h *NodeHandler) Trash(c *gin.Context) {
 	response.Success(c, gin.H{"id": node.ID, "status": "trashed"})
 }
 
+// @Summary Restore
+// @Description Handles POST /api/fileshare/v1/management/nodes/{id}/restore.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/restore [post]
 func (h *NodeHandler) Restore(c *gin.Context) {
 	actor, node, ok := h.authorizeWrite(c, "trashed")
 	if !ok {
@@ -267,6 +371,21 @@ func (h *NodeHandler) Restore(c *gin.Context) {
 	response.Success(c, gin.H{"id": node.ID, "status": "active"})
 }
 
+// @Summary List Trash
+// @Description Handles GET /api/fileshare/v1/management/trash.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/trash [get]
 func (h *NodeHandler) ListTrash(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -295,6 +414,19 @@ func (h *NodeHandler) ListTrash(c *gin.Context) {
 	h.respondPage(c, visible)
 }
 
+// @Summary Detail
+// @Description Handles GET /api/fileshare/v1/management/nodes/{id}/detail.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/detail [get]
 func (h *NodeHandler) Detail(c *gin.Context) {
 	actor, node, ok := h.authorizeRead(c)
 	if !ok {
@@ -347,6 +479,32 @@ func (h *NodeHandler) Detail(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// @Summary Search
+// @Description Handles GET /api/fileshare/v1/management/search.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param created_by query string false "created_by"
+// @Param created_from query string false "created_from"
+// @Param created_to query string false "created_to"
+// @Param extension query string false "extension"
+// @Param keyword query string false "keyword"
+// @Param max_size query string false "max_size"
+// @Param min_size query string false "min_size"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Param sort query string false "sort"
+// @Param type query string false "type"
+// @Param updated_by query string false "updated_by"
+// @Param updated_from query string false "updated_from"
+// @Param updated_to query string false "updated_to"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/search [get]
 func (h *NodeHandler) Search(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -512,6 +670,21 @@ func (h *NodeHandler) decorateStorage(workspaceID uint, nodes []model.Node) erro
 	return nil
 }
 
+// @Summary List Favorites
+// @Description Handles GET /api/fileshare/v1/management/favorites.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/favorites [get]
 func (h *NodeHandler) ListFavorites(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -541,6 +714,21 @@ func (h *NodeHandler) ListFavorites(c *gin.Context) {
 	h.respondPage(c, visible)
 }
 
+// @Summary Set Favorite
+// @Description Handles PUT /api/fileshare/v1/management/nodes/{id}/favorite.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/favorite [put]
 func (h *NodeHandler) SetFavorite(c *gin.Context) {
 	actor, node, ok := h.authorizeRead(c)
 	if !ok {
@@ -564,6 +752,18 @@ func (h *NodeHandler) SetFavorite(c *gin.Context) {
 	response.Success(c, gin.H{"node_id": node.ID, "favorite": *req.Favorite})
 }
 
+// @Summary Folder Tree
+// @Description Handles GET /api/fileshare/v1/management/folders/tree.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/folders/tree [get]
 func (h *NodeHandler) FolderTree(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {

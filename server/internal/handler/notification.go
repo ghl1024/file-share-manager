@@ -69,6 +69,20 @@ type notificationChannelResponse struct {
 	UpdatedAt              time.Time `json:"updated_at"`
 }
 
+// @Summary List Channels
+// @Description Handles GET /api/fileshare/v1/management/system/notifications.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/notifications [get]
 func (h *NotificationHandler) ListChannels(c *gin.Context) {
 	page, pageSize, _ := pagination.ParseGinContextWithOptions(c, pagination.Options{DefaultPage: 1, DefaultPageSize: 20, MaxPageSize: 100})
 	result, err := h.dao.ListChannels(page, pageSize)
@@ -88,6 +102,20 @@ func (h *NotificationHandler) ListChannels(c *gin.Context) {
 	response.SuccessWithPage(c, items, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary Create Channel
+// @Description Handles POST /api/fileshare/v1/management/system/notifications.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/notifications [post]
 func (h *NotificationHandler) CreateChannel(c *gin.Context) {
 	var req notificationChannelRequest
 	if !request.BindJSON(c, &req) {
@@ -124,6 +152,21 @@ func (h *NotificationHandler) CreateChannel(c *gin.Context) {
 	response.SuccessWithMessage(c, "创建成功", item)
 }
 
+// @Summary Update Channel
+// @Description Handles PUT /api/fileshare/v1/management/system/notifications/{id}.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/notifications/{id} [put]
 func (h *NotificationHandler) UpdateChannel(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -171,6 +214,20 @@ func (h *NotificationHandler) UpdateChannel(c *gin.Context) {
 	response.SuccessWithMessage(c, "保存成功", nil)
 }
 
+// @Summary Delete Channel
+// @Description Handles DELETE /api/fileshare/v1/management/system/notifications/{id}.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/notifications/{id} [delete]
 func (h *NotificationHandler) DeleteChannel(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -187,6 +244,20 @@ func (h *NotificationHandler) DeleteChannel(c *gin.Context) {
 	response.SuccessWithMessage(c, "删除成功", nil)
 }
 
+// @Summary Test Channel
+// @Description Handles POST /api/fileshare/v1/management/system/notifications/{id}/test.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/notifications/{id}/test [post]
 func (h *NotificationHandler) TestChannel(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -213,6 +284,21 @@ func (h *NotificationHandler) TestChannel(c *gin.Context) {
 	response.SuccessWithMessage(c, "测试消息已加入发送队列", nil)
 }
 
+// @Summary List Outbox
+// @Description Handles GET /api/fileshare/v1/management/system/notifications/outbox.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param status query string false "status"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/notifications/outbox [get]
 func (h *NotificationHandler) ListOutbox(c *gin.Context) {
 	page, pageSize, _ := pagination.ParseGinContextWithOptions(c, pagination.Options{DefaultPage: 1, DefaultPageSize: 20, MaxPageSize: 100})
 	status := strings.TrimSpace(c.Query("status"))
@@ -228,6 +314,20 @@ func (h *NotificationHandler) ListOutbox(c *gin.Context) {
 	response.SuccessWithPage(c, result.List, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary Retry Outbox
+// @Description Handles POST /api/fileshare/v1/management/system/notifications/outbox/{id}/retry.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/notifications/outbox/{id}/retry [post]
 func (h *NotificationHandler) RetryOutbox(c *gin.Context) {
 	id := strings.TrimSpace(c.Param("id"))
 	if id == "" || len(id) > 64 {

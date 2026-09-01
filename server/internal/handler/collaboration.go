@@ -63,6 +63,21 @@ func NewCollaborationHandler() *CollaborationHandler {
 	}
 }
 
+// @Summary List Shared With Me
+// @Description Handles GET /api/fileshare/v1/management/collaboration/shared-with-me.
+// @Tags Collaboration
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/collaboration/shared-with-me [get]
 func (h *CollaborationHandler) ListSharedWithMe(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -102,6 +117,21 @@ func (h *CollaborationHandler) ListSharedWithMe(c *gin.Context) {
 	respondSlicePage(c, visible, page, pageSize)
 }
 
+// @Summary List Recent
+// @Description Handles GET /api/fileshare/v1/management/collaboration/recent.
+// @Tags Collaboration
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/collaboration/recent [get]
 func (h *CollaborationHandler) ListRecent(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {

@@ -73,6 +73,21 @@ func NewNodeCollaborationHandler() *NodeCollaborationHandler {
 	}
 }
 
+// @Summary List Activity
+// @Description Handles GET /api/fileshare/v1/management/nodes/{id}/activity.
+// @Tags Collaboration
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/activity [get]
 func (h *NodeCollaborationHandler) ListActivity(c *gin.Context) {
 	actor, node, ok := h.authorizeNode(c)
 	if !ok {
@@ -92,6 +107,21 @@ func (h *NodeCollaborationHandler) ListActivity(c *gin.Context) {
 	response.SuccessWithPage(c, items, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary List Comments
+// @Description Handles GET /api/fileshare/v1/management/nodes/{id}/comments.
+// @Tags Collaboration
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/comments [get]
 func (h *NodeCollaborationHandler) ListComments(c *gin.Context) {
 	actor, node, ok := h.authorizeNode(c)
 	if !ok {
@@ -120,6 +150,20 @@ func (h *NodeCollaborationHandler) ListComments(c *gin.Context) {
 	response.SuccessWithPage(c, items, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary Mention Candidates
+// @Description Handles GET /api/fileshare/v1/management/nodes/{id}/mention-candidates.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param keyword query string false "keyword"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/mention-candidates [get]
 func (h *NodeCollaborationHandler) MentionCandidates(c *gin.Context) {
 	actor, node, ok := h.authorizeNode(c)
 	if !ok {
@@ -156,6 +200,21 @@ func (h *NodeCollaborationHandler) MentionCandidates(c *gin.Context) {
 	response.Success(c, visible)
 }
 
+// @Summary Create Comment
+// @Description Handles POST /api/fileshare/v1/management/nodes/{id}/comments.
+// @Tags Collaboration
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/comments [post]
 func (h *NodeCollaborationHandler) CreateComment(c *gin.Context) {
 	actor, node, ok := h.authorizeNode(c)
 	if !ok {
@@ -196,6 +255,22 @@ func (h *NodeCollaborationHandler) CreateComment(c *gin.Context) {
 	response.Success(c, item)
 }
 
+// @Summary Update Comment
+// @Description Handles PUT /api/fileshare/v1/management/nodes/{id}/comments/{comment_id}.
+// @Tags Collaboration
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param comment_id path string true "comment_id"
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/comments/{comment_id} [put]
 func (h *NodeCollaborationHandler) UpdateComment(c *gin.Context) {
 	actor, node, ok := h.authorizeNode(c)
 	if !ok {
@@ -258,6 +333,21 @@ func (h *NodeCollaborationHandler) UpdateComment(c *gin.Context) {
 	response.Success(c, item)
 }
 
+// @Summary Delete Comment
+// @Description Handles DELETE /api/fileshare/v1/management/nodes/{id}/comments/{comment_id}.
+// @Tags Collaboration
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param comment_id path string true "comment_id"
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/{id}/comments/{comment_id} [delete]
 func (h *NodeCollaborationHandler) DeleteComment(c *gin.Context) {
 	actor, node, ok := h.authorizeNode(c)
 	if !ok {

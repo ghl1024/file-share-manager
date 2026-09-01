@@ -29,6 +29,21 @@ type BackupHandler struct {
 	service *backupservice.Service
 }
 
+// @Summary Restore Workspace
+// @Description Handles POST /api/fileshare/v1/management/backups/{id}/restore-workspace.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/{id}/restore-workspace [post]
 func (h *BackupHandler) RestoreWorkspace(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -82,6 +97,21 @@ func (h *BackupHandler) RestoreWorkspace(c *gin.Context) {
 	}
 }
 
+// @Summary Restore
+// @Description Handles POST /api/fileshare/v1/management/backups/{id}/restore.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/{id}/restore [post]
 func (h *BackupHandler) Restore(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -119,6 +149,20 @@ func (h *BackupHandler) Restore(c *gin.Context) {
 
 func NewBackupHandler() *BackupHandler { return &BackupHandler{service: backupservice.NewService()} }
 
+// @Summary List
+// @Description Handles GET /api/fileshare/v1/management/backups.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups [get]
 func (h *BackupHandler) List(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -133,6 +177,20 @@ func (h *BackupHandler) List(c *gin.Context) {
 	response.SuccessWithPage(c, result.List, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary List Restore Drills
+// @Description Handles GET /api/fileshare/v1/management/backup-restore-drills.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backup-restore-drills [get]
 func (h *BackupHandler) ListRestoreDrills(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -147,6 +205,18 @@ func (h *BackupHandler) ListRestoreDrills(c *gin.Context) {
 	response.SuccessWithPage(c, result.List, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary Health
+// @Description Handles GET /api/fileshare/v1/management/backups/health.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/health [get]
 func (h *BackupHandler) Health(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -160,6 +230,19 @@ func (h *BackupHandler) Health(c *gin.Context) {
 	response.Success(c, health)
 }
 
+// @Summary Create Baseline
+// @Description Handles POST /api/fileshare/v1/management/backups/baseline.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/baseline [post]
 func (h *BackupHandler) CreateBaseline(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -185,6 +268,19 @@ func (h *BackupHandler) CreateBaseline(c *gin.Context) {
 	response.Success(c, job)
 }
 
+// @Summary Create Incremental
+// @Description Handles POST /api/fileshare/v1/management/backups/incremental.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/incremental [post]
 func (h *BackupHandler) CreateIncremental(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -214,6 +310,20 @@ func (h *BackupHandler) CreateIncremental(c *gin.Context) {
 	response.Success(c, job)
 }
 
+// @Summary Compact
+// @Description Handles POST /api/fileshare/v1/management/backups/compact.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/compact [post]
 func (h *BackupHandler) Compact(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -250,6 +360,20 @@ func (h *BackupHandler) Compact(c *gin.Context) {
 	}
 }
 
+// @Summary Retry
+// @Description Handles POST /api/fileshare/v1/management/backups/{id}/retry.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/{id}/retry [post]
 func (h *BackupHandler) Retry(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -281,6 +405,21 @@ func (h *BackupHandler) Retry(c *gin.Context) {
 	}
 }
 
+// @Summary Restore Drill
+// @Description Handles POST /api/fileshare/v1/management/backups/{id}/restore-drill.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/{id}/restore-drill [post]
 func (h *BackupHandler) RestoreDrill(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -313,6 +452,20 @@ func (h *BackupHandler) RestoreDrill(c *gin.Context) {
 	}
 }
 
+// @Summary Verify
+// @Description Handles POST /api/fileshare/v1/management/backups/{id}/verify.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/{id}/verify [post]
 func (h *BackupHandler) Verify(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -339,6 +492,19 @@ func (h *BackupHandler) Verify(c *gin.Context) {
 	response.Success(c, gin.H{"valid": true, "job_id": id, "kind": manifest.Kind, "parent_id": manifest.ParentID, "change_log_start": manifest.ChangeLogStart, "change_log_end": manifest.ChangeLogEnd, "object_count": manifest.ObjectCount, "total_bytes": manifest.TotalBytes, "manifest_hash": manifest.ManifestHash})
 }
 
+// @Summary Detail
+// @Description Handles GET /api/fileshare/v1/management/backups/{id}.
+// @Tags Backup and restore
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/backups/{id} [get]
 func (h *BackupHandler) Detail(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {

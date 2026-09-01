@@ -1,0 +1,16 @@
+workspace:
+  launch:
+    button:
+      name: 启动开发环境
+      description: File Share Manager 工作空间文件共享服务
+    cpus: 8
+    disabled: false
+    autoOpenWebIDE: false
+
+issue:
+  button:
+    description: 提交问题或建议
+
+fork:
+  button:
+    description: Fork 本项目

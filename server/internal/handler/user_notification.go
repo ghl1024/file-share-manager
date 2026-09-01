@@ -43,6 +43,22 @@ func NewUserNotificationHandler() *UserNotificationHandler {
 	}
 }
 
+// @Summary List
+// @Description Handles GET /api/fileshare/v1/management/notifications.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param category query string false "category"
+// @Param unread_only query string false "unread_only"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/notifications [get]
 func (h *UserNotificationHandler) List(c *gin.Context) {
 	userID, ok := currentUserID(c)
 	if !ok {
@@ -71,6 +87,18 @@ func (h *UserNotificationHandler) List(c *gin.Context) {
 	response.SuccessWithPage(c, result.List, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary Unread Count
+// @Description Handles GET /api/fileshare/v1/management/notifications/unread-count.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/notifications/unread-count [get]
 func (h *UserNotificationHandler) UnreadCount(c *gin.Context) {
 	userID, ok := currentUserID(c)
 	if !ok {
@@ -84,6 +112,20 @@ func (h *UserNotificationHandler) UnreadCount(c *gin.Context) {
 	response.Success(c, gin.H{"unread_count": count})
 }
 
+// @Summary Mark Read
+// @Description Handles PUT /api/fileshare/v1/management/notifications/{id}/read.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/notifications/{id}/read [put]
 func (h *UserNotificationHandler) MarkRead(c *gin.Context) {
 	userID, id, ok := notificationIdentity(c)
 	if !ok {
@@ -105,6 +147,19 @@ func (h *UserNotificationHandler) MarkRead(c *gin.Context) {
 	response.Success(c, gin.H{"id": id, "is_read": true})
 }
 
+// @Summary Mark All Read
+// @Description Handles PUT /api/fileshare/v1/management/notifications/read-all.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/notifications/read-all [put]
 func (h *UserNotificationHandler) MarkAllRead(c *gin.Context) {
 	userID, ok := currentUserID(c)
 	if !ok {
@@ -118,6 +173,18 @@ func (h *UserNotificationHandler) MarkAllRead(c *gin.Context) {
 	response.Success(c, gin.H{"updated_count": count})
 }
 
+// @Summary Preferences
+// @Description Handles GET /api/fileshare/v1/management/notifications/preferences.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/notifications/preferences [get]
 func (h *UserNotificationHandler) Preferences(c *gin.Context) {
 	userID, ok := currentUserID(c)
 	if !ok {
@@ -131,6 +198,20 @@ func (h *UserNotificationHandler) Preferences(c *gin.Context) {
 	response.Success(c, preference)
 }
 
+// @Summary Save Preferences
+// @Description Handles PUT /api/fileshare/v1/management/notifications/preferences.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/notifications/preferences [put]
 func (h *UserNotificationHandler) SavePreferences(c *gin.Context) {
 	userID, ok := currentUserID(c)
 	if !ok {
@@ -158,6 +239,20 @@ func (h *UserNotificationHandler) SavePreferences(c *gin.Context) {
 
 // Open re-authorizes the target before returning a route. A stale notification
 // is still marked read, but never becomes a capability to the old target.
+// @Summary Open
+// @Description Handles POST /api/fileshare/v1/management/notifications/{id}/open.
+// @Tags Notifications
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/notifications/{id}/open [post]
 func (h *UserNotificationHandler) Open(c *gin.Context) {
 	userID, id, ok := notificationIdentity(c)
 	if !ok {

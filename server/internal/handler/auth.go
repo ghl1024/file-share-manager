@@ -50,6 +50,22 @@ func NewAuthHandler() *AuthHandler {
 
 // ListUsers returns the standard paginated envelope. Workspace-scoped roles
 // are managed separately after a workspace is selected.
+// @Summary List Users
+// @Description Handles GET /api/fileshare/v1/management/system/users.
+// @Tags User management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param username query string false "username"
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/users [get]
 func (h *AuthHandler) ListUsers(c *gin.Context) {
 	page, pageSize, keyword := pagination.ParseGinContextWithOptions(c, pagination.Options{DefaultPage: 1, DefaultPageSize: 20, MaxPageSize: 200})
 	if keyword == "" {
@@ -92,6 +108,19 @@ func (h *AuthHandler) ListUsers(c *gin.Context) {
 	response.SuccessWithPage(c, items, users.Total, users.Page, users.PageSize)
 }
 
+// @Summary Get User
+// @Description Handles GET /api/fileshare/v1/management/system/users/{id}.
+// @Tags User management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/users/{id} [get]
 func (h *AuthHandler) GetUser(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -111,6 +140,20 @@ func (h *AuthHandler) GetUser(c *gin.Context) {
 }
 
 // CreateUser is an administrator-only account creation endpoint.
+// @Summary Create User
+// @Description Handles POST /api/fileshare/v1/management/system/users.
+// @Tags User management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/users [post]
 func (h *AuthHandler) CreateUser(c *gin.Context) {
 	var req struct {
 		Username string `json:"username" binding:"required,min=3,max=64"`
@@ -169,6 +212,21 @@ func (h *AuthHandler) CreateUser(c *gin.Context) {
 	response.Success(c, gin.H{"id": user.ID, "username": user.Username})
 }
 
+// @Summary Update User
+// @Description Handles PUT /api/fileshare/v1/management/system/users/{id}.
+// @Tags User management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/users/{id} [put]
 func (h *AuthHandler) UpdateUser(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -202,6 +260,21 @@ func (h *AuthHandler) UpdateUser(c *gin.Context) {
 	response.SuccessWithMessage(c, "更新成功", nil)
 }
 
+// @Summary Update User Status
+// @Description Handles PUT /api/fileshare/v1/management/system/users/{id}/status.
+// @Tags User management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/users/{id}/status [put]
 func (h *AuthHandler) UpdateUserStatus(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -236,6 +309,20 @@ func (h *AuthHandler) UpdateUserStatus(c *gin.Context) {
 	response.SuccessWithMessage(c, "更新成功", nil)
 }
 
+// @Summary Delete User
+// @Description Handles DELETE /api/fileshare/v1/management/system/users/{id}.
+// @Tags User management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/users/{id} [delete]
 func (h *AuthHandler) DeleteUser(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -260,6 +347,21 @@ func (h *AuthHandler) DeleteUser(c *gin.Context) {
 	response.SuccessWithMessage(c, "删除成功", nil)
 }
 
+// @Summary Reset User Password
+// @Description Handles PUT /api/fileshare/v1/management/system/users/{id}/password.
+// @Tags User management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/users/{id}/password [put]
 func (h *AuthHandler) ResetUserPassword(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -298,6 +400,16 @@ func (h *AuthHandler) ResetUserPassword(c *gin.Context) {
 }
 
 // Login 用户登录
+// @Summary Login
+// @Description Handles POST /api/fileshare/v1/auth/login.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param body body object true "Request body"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req struct {
 		Username string `json:"username" binding:"required"`
@@ -373,6 +485,19 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 // Logout 注销登录
+// @Summary Logout
+// @Description Handles POST /api/fileshare/v1/auth/logout.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -388,6 +513,18 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 }
 
 // Profile 获取当前登录用户信息
+// @Summary Profile
+// @Description Handles GET /api/fileshare/v1/auth/profile.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/profile [get]
 func (h *AuthHandler) Profile(c *gin.Context) {
 	user, ok := h.currentUser(c)
 	if !ok {
@@ -417,6 +554,20 @@ func (h *AuthHandler) Profile(c *gin.Context) {
 	response.Success(c, payload)
 }
 
+// @Summary Update Profile
+// @Description Handles PUT /api/fileshare/v1/auth/profile.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/profile [put]
 func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 	user, ok := h.currentUser(c)
 	if !ok {
@@ -460,6 +611,20 @@ func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 	})
 }
 
+// @Summary Change Password
+// @Description Handles PUT /api/fileshare/v1/auth/password.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/password [put]
 func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	user, ok := h.currentUser(c)
 	if !ok {
@@ -517,6 +682,18 @@ func (h *AuthHandler) ChangePassword(c *gin.Context) {
 	response.SuccessWithMessage(c, "密码已修改，其他登录会话已失效", session)
 }
 
+// @Summary Session
+// @Description Handles GET /api/fileshare/v1/auth/session.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/session [get]
 func (h *AuthHandler) Session(c *gin.Context) {
 	user, ok := h.currentUser(c)
 	if !ok {
@@ -549,6 +726,18 @@ func (h *AuthHandler) Session(c *gin.Context) {
 	response.Success(c, session)
 }
 
+// @Summary Workspaces
+// @Description Handles GET /api/fileshare/v1/auth/workspaces.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/workspaces [get]
 func (h *AuthHandler) Workspaces(c *gin.Context) {
 	user, ok := h.currentUser(c)
 	if !ok {
@@ -562,6 +751,20 @@ func (h *AuthHandler) Workspaces(c *gin.Context) {
 	response.Success(c, workspaces)
 }
 
+// @Summary Switch Workspace
+// @Description Handles POST /api/fileshare/v1/auth/workspace/switch.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /auth/workspace/switch [post]
 func (h *AuthHandler) SwitchWorkspace(c *gin.Context) {
 	user, ok := h.currentUser(c)
 	if !ok {

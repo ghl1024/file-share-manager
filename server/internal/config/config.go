@@ -53,6 +53,7 @@ type ServerConfig struct {
 	ShutdownTimeoutSeconds   int    `toml:"shutdown_timeout_seconds"`
 	MaxRequestBodyBytes      int64  `toml:"max_request_body_bytes"`
 	MaxUploadBodyBytes       int64  `toml:"max_upload_body_bytes"`
+	EnableSwagger            bool   `toml:"enable_swagger"`
 }
 
 type DatabaseConfig struct {
@@ -479,6 +480,13 @@ func applyEnv(cfg *Config) error {
 	setString("FILESHARE_AUDIT_DB_NAME", &cfg.AuditDatabase.DBName)
 	setString("FILESHARE_JWT_SECRET", &cfg.JWT.Secret)
 	setString("FILESHARE_WEB_URL", &cfg.Server.WebURL)
+	if value := strings.TrimSpace(os.Getenv("FILESHARE_ENABLE_SWAGGER")); value != "" {
+		parsed, err := strconv.ParseBool(value)
+		if err != nil {
+			return fmt.Errorf("FILESHARE_ENABLE_SWAGGER must be a boolean: %w", err)
+		}
+		cfg.Server.EnableSwagger = parsed
+	}
 	setString("FILESHARE_STORAGE_ROOT", &cfg.Storage.RootPath)
 	setString("FILESHARE_STORAGE_STAGING", &cfg.Storage.StagingPath)
 	setString("FILESHARE_STORAGE_MODE", &cfg.Storage.Mode)

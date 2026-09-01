@@ -54,6 +54,20 @@ func NewBatchDownloadHandler() *BatchDownloadHandler {
 	}
 }
 
+// @Summary Create
+// @Description Handles POST /api/fileshare/v1/management/batch-downloads.
+// @Tags Batch downloads
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/batch-downloads [post]
 func (h *BatchDownloadHandler) Create(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -108,6 +122,20 @@ func (h *BatchDownloadHandler) Create(c *gin.Context) {
 	response.Success(c, job)
 }
 
+// @Summary List
+// @Description Handles GET /api/fileshare/v1/management/batch-downloads.
+// @Tags Batch downloads
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/batch-downloads [get]
 func (h *BatchDownloadHandler) List(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -122,6 +150,19 @@ func (h *BatchDownloadHandler) List(c *gin.Context) {
 	response.SuccessWithPage(c, result.List, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary Get
+// @Description Handles GET /api/fileshare/v1/management/batch-downloads/{id}.
+// @Tags Batch downloads
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/batch-downloads/{id} [get]
 func (h *BatchDownloadHandler) Get(c *gin.Context) {
 	actor, job, ok := h.ownedJob(c)
 	_ = actor
@@ -131,6 +172,20 @@ func (h *BatchDownloadHandler) Get(c *gin.Context) {
 	response.Success(c, job)
 }
 
+// @Summary Retry
+// @Description Handles POST /api/fileshare/v1/management/batch-downloads/{id}/retry.
+// @Tags Batch downloads
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/batch-downloads/{id}/retry [post]
 func (h *BatchDownloadHandler) Retry(c *gin.Context) {
 	actor, job, ok := h.ownedJob(c)
 	if !ok {
@@ -163,6 +218,19 @@ func (h *BatchDownloadHandler) Retry(c *gin.Context) {
 	response.Success(c, job)
 }
 
+// @Summary Download
+// @Description Handles GET /api/fileshare/v1/management/batch-downloads/{id}/download.
+// @Tags Batch downloads
+// @Accept json
+// @Produce application/octet-stream
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {file} binary
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/batch-downloads/{id}/download [get]
 func (h *BatchDownloadHandler) Download(c *gin.Context) {
 	_, job, ok := h.ownedJob(c)
 	if !ok {

@@ -100,6 +100,20 @@ type createShareRequest struct {
 	MaxDownloads *int   `json:"max_downloads"`
 }
 
+// @Summary Create
+// @Description Handles POST /api/fileshare/v1/management/shares.
+// @Tags Sharing
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/shares [post]
 func (h *ShareHandler) Create(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -197,6 +211,26 @@ func (h *ShareHandler) Create(c *gin.Context) {
 	})
 }
 
+// @Summary List
+// @Description Handles GET /api/fileshare/v1/management/shares.
+// @Tags Sharing
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param creator query string false "creator"
+// @Param expires_from query string false "expires_from"
+// @Param expires_to query string false "expires_to"
+// @Param name query string false "name"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Param scope query string false "scope"
+// @Param status query string false "status"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/shares [get]
 func (h *ShareHandler) List(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -230,6 +264,19 @@ func (h *ShareHandler) List(c *gin.Context) {
 	response.SuccessWithPage(c, items, result.Total, result.Page, result.PageSize)
 }
 
+// @Summary Detail
+// @Description Handles GET /api/fileshare/v1/management/shares/{id}.
+// @Tags Sharing
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/shares/{id} [get]
 func (h *ShareHandler) Detail(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -285,6 +332,20 @@ func (h *ShareHandler) Detail(c *gin.Context) {
 	response.Success(c, items[0])
 }
 
+// @Summary Revoke
+// @Description Handles POST /api/fileshare/v1/management/shares/{id}/revoke.
+// @Tags Sharing
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/shares/{id}/revoke [post]
 func (h *ShareHandler) Revoke(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -530,6 +591,16 @@ func completeAncestorPath(node *model.Node, ancestors []model.Node) bool {
 }
 
 // PublicInfo returns only snapshot metadata that is safe for an anonymous user.
+// @Summary Public Info
+// @Description Handles GET /api/fileshare/v1/share/{token}.
+// @Tags Public shares
+// @Accept json
+// @Produce json
+// @Param token path string true "token"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /share/{token} [get]
 func (h *ShareHandler) PublicInfo(c *gin.Context) {
 	share, items, ok := h.loadPublicShare(c)
 	if !ok {
@@ -553,6 +624,17 @@ func (h *ShareHandler) PublicInfo(c *gin.Context) {
 	})
 }
 
+// @Summary Verify
+// @Description Handles POST /api/fileshare/v1/share/{token}/verify.
+// @Tags Public shares
+// @Accept json
+// @Produce json
+// @Param token path string true "token"
+// @Param body body object true "Request body"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /share/{token}/verify [post]
 func (h *ShareHandler) Verify(c *gin.Context) {
 	share, _, ok := h.loadPublicShare(c)
 	if !ok {
@@ -573,6 +655,17 @@ func (h *ShareHandler) Verify(c *gin.Context) {
 	response.Success(c, gin.H{"verified": true, "expires_at": share.ExpiresAt})
 }
 
+// @Summary Download
+// @Description Handles GET /api/fileshare/v1/share/{token}/download.
+// @Tags Public shares
+// @Accept json
+// @Produce application/octet-stream
+// @Param token path string true "token"
+// @Param item query string false "item"
+// @Success 200 {file} binary
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /share/{token}/download [get]
 func (h *ShareHandler) Download(c *gin.Context) {
 	token := strings.TrimSpace(c.Param("token"))
 	if !validShareToken(token) {

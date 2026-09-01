@@ -24,6 +24,18 @@ type ReconcileHandler struct{}
 
 func NewReconcileHandler() *ReconcileHandler { return &ReconcileHandler{} }
 
+// @Summary Scan
+// @Description Handles GET /api/fileshare/v1/management/storage/reconcile.
+// @Tags Storage governance
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/storage/reconcile [get]
 func (h *ReconcileHandler) Scan(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -42,6 +54,20 @@ type quarantineOrphansRequest struct {
 	Confirm     string   `json:"confirm" binding:"required"`
 }
 
+// @Summary Quarantine
+// @Description Handles POST /api/fileshare/v1/management/storage/reconcile/quarantine.
+// @Tags Storage governance
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/storage/reconcile/quarantine [post]
 func (h *ReconcileHandler) Quarantine(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {

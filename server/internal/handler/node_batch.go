@@ -44,6 +44,20 @@ type batchNodeIDsRequest struct {
 	NodeIDs []uint `json:"node_ids" binding:"required,min=1,max=100,dive,gt=0"`
 }
 
+// @Summary Batch Move
+// @Description Handles POST /api/fileshare/v1/management/nodes/batch/move.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/batch/move [post]
 func (h *NodeHandler) BatchMove(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -98,6 +112,20 @@ func (h *NodeHandler) BatchMove(c *gin.Context) {
 	respondBatchNodes(c, results)
 }
 
+// @Summary Batch Trash
+// @Description Handles POST /api/fileshare/v1/management/nodes/batch/trash.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/batch/trash [post]
 func (h *NodeHandler) BatchTrash(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -122,6 +150,20 @@ func (h *NodeHandler) BatchTrash(c *gin.Context) {
 	respondBatchNodes(c, results)
 }
 
+// @Summary Batch Restore
+// @Description Handles POST /api/fileshare/v1/management/nodes/batch/restore.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/batch/restore [post]
 func (h *NodeHandler) BatchRestore(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -146,6 +188,20 @@ func (h *NodeHandler) BatchRestore(c *gin.Context) {
 	respondBatchNodes(c, results)
 }
 
+// @Summary Batch Favorite
+// @Description Handles PUT /api/fileshare/v1/management/nodes/batch/favorite.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/nodes/batch/favorite [put]
 func (h *NodeHandler) BatchFavorite(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {

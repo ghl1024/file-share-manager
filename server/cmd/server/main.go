@@ -8,6 +8,20 @@
 - Author: https://hayden.pub
  */
 
+// @title File Share Manager API
+// @version 1.0
+// @description File Share Manager workspace file sharing and governance API.
+// @termsOfService https://github.com/ghl1024/file-share-manager
+// @contact.name HaydenGuo
+// @contact.url https://hayden.pub
+// @license.name Apache 2.0
+// @license.url https://www.apache.org/licenses/LICENSE-2.0
+// @BasePath /api/fileshare/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter "Bearer {token}". Browser sessions may also use the HttpOnly fileshare_session cookie.
+
 package main
 
 import (
@@ -108,7 +122,7 @@ func main() {
 	engine.Use(middleware.CORSMiddleware())
 	engine.Use(middleware.RateLimitMiddleware(100, time.Minute))
 	registerHealthRoutes(engine)
-	router.RegisterRoutes(engine)
+	router.RegisterRoutesWithConfig(engine, cfg)
 
 	address := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	server := &http.Server{

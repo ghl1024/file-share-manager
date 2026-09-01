@@ -1,0 +1,111 @@
+main:
+  push:
+    - name: build-amd64-images
+      services:
+        - docker
+      env:
+        SERVER_TAG: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/server:latest-linux-amd64
+        FRONTEND_TAG: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/frontend:latest-linux-amd64
+      runner:
+        cpus: 4
+        tags: cnb:arch:amd64
+      stages:
+        - name: 登录 CNB 镜像仓库
+          script: echo "${CNB_TOKEN}" | docker login -u "${CNB_TOKEN_USER_NAME}" --password-stdin "${CNB_DOCKER_REGISTRY}"
+        - name: 构建 Server amd64 镜像
+          script: |
+            GOPROXY=https://goproxy.cn,direct
+            GO_VERSION=$(awk '/^go / {print $2; exit}' server/go.mod)
+            docker build --pull \
+              --build-arg VERSION=v0.0.0 \
+              --build-arg GIT_COMMIT=${CNB_COMMIT} \
+              --build-arg BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+              --build-arg GOPROXY=${GOPROXY} \
+              --build-arg GO_VERSION=${GO_VERSION} \
+              -t ${SERVER_TAG} -f server/Dockerfile ./server
+            docker push ${SERVER_TAG}
+        - name: 构建 Frontend amd64 镜像
+          script: |
+            docker build --pull \
+              --build-arg NODE_VERSION=22 \
+              --build-arg VERSION=v0.0.0 \
+              --build-arg GIT_COMMIT=${CNB_COMMIT} \
+              --build-arg BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+              -t ${FRONTEND_TAG} -f frontend/Dockerfile ./frontend
+            docker push ${FRONTEND_TAG}
+        - name: 标记 amd64 构建完成
+          type: cnb:resolve
+          options:
+            key: fileshare-images-amd64
+
+    - name: build-arm64-images
+      services:
+        - docker
+      env:
+        SERVER_TAG: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/server:latest-linux-arm64
+        FRONTEND_TAG: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/frontend:latest-linux-arm64
+      runner:
+        cpus: 4
+        tags: cnb:arch:arm64:v8
+      stages:
+        - name: 登录 CNB 镜像仓库
+          script: echo "${CNB_TOKEN}" | docker login -u "${CNB_TOKEN_USER_NAME}" --password-stdin "${CNB_DOCKER_REGISTRY}"
+        - name: 构建 Server arm64 镜像
+          script: |
+            GOPROXY=https://goproxy.cn,direct
+            GO_VERSION=$(awk '/^go / {print $2; exit}' server/go.mod)
+            docker build --pull \
+              --build-arg VERSION=v0.0.0 \
+              --build-arg GIT_COMMIT=${CNB_COMMIT} \
+              --build-arg BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+              --build-arg GOPROXY=${GOPROXY} \
+              --build-arg GO_VERSION=${GO_VERSION} \
+              -t ${SERVER_TAG} -f server/Dockerfile ./server
+            docker push ${SERVER_TAG}
+        - name: 构建 Frontend arm64 镜像
+          script: |
+            docker build --pull \
+              --build-arg NODE_VERSION=22 \
+              --build-arg VERSION=v0.0.0 \
+              --build-arg GIT_COMMIT=${CNB_COMMIT} \
+              --build-arg BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+              -t ${FRONTEND_TAG} -f frontend/Dockerfile ./frontend
+            docker push ${FRONTEND_TAG}
+        - name: 标记 arm64 构建完成
+          type: cnb:resolve
+          options:
+            key: fileshare-images-arm64
+
+    - name: publish-multiarch-images
+      services:
+        - docker
+      env:
+        SERVER_LATEST: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/server:latest
+        FRONTEND_LATEST: ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/frontend:latest
+      runner:
+        cpus: 2
+      stages:
+        - name: 等待 amd64 构建
+          type: cnb:await
+          options:
+            key: fileshare-images-amd64
+        - name: 等待 arm64 构建
+          type: cnb:await
+          options:
+            key: fileshare-images-arm64
+        - name: 发布 Server 多架构镜像
+          image: cnbcool/manifest
+          settings:
+            target: ${SERVER_LATEST}
+            template: ${SERVER_LATEST}-OS-ARCH
+            platforms:
+              - linux/amd64
+              - linux/arm64
+        - name: 发布 Frontend 多架构镜像
+          image: cnbcool/manifest
+          settings:
+            target: ${FRONTEND_LATEST}
+            template: ${FRONTEND_LATEST}-OS-ARCH
+            platforms:
+              - linux/amd64
+              - linux/arm64

@@ -1,0 +1,38 @@
+name: Issue Stale Check
+
+on:
+  schedule:
+    - cron: '0 0 */15 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark and close inactive issues and pull requests
+        uses: actions/stale@v9 # v9.1.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: stale
+          stale-pr-label: stale
+          exempt-issue-labels: security,keep
+          exempt-pr-labels: security,keep
+          stale-issue-message: >-
+            This issue has been automatically marked as stale because it has had no recent activity.
+            It will be closed in 7 days unless there is a new update.
+          close-issue-message: >-
+            This issue was automatically closed after 7 days without activity. It can be reopened with
+            updated reproduction details.
+          stale-pr-message: >-
+            This pull request has been automatically marked as stale because it has had no recent activity.
+            It will be closed in 7 days unless there is a new update.
+          close-pr-message: >-
+            This pull request was automatically closed after 7 days without activity. It can be reopened
+            when it is ready for review.

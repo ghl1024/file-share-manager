@@ -42,6 +42,20 @@ func NewWorkspaceHandler() *WorkspaceHandler {
 }
 
 // CreateWorkspace 超管创建工作空间
+// @Summary Create Workspace
+// @Description Handles POST /api/fileshare/v1/management/workspaces.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces [post]
 func (h *WorkspaceHandler) CreateWorkspace(c *gin.Context) {
 	var req struct {
 		Name       string `json:"name" binding:"required,max=128"`
@@ -108,6 +122,21 @@ func (h *WorkspaceHandler) CreateWorkspace(c *gin.Context) {
 }
 
 // ListWorkspaces 获取工作空间列表
+// @Summary List Workspaces
+// @Description Handles GET /api/fileshare/v1/management/workspaces.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces [get]
 func (h *WorkspaceHandler) ListWorkspaces(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	isSuperAdmin, _ := c.Get("is_super_admin")
@@ -122,6 +151,20 @@ func (h *WorkspaceHandler) ListWorkspaces(c *gin.Context) {
 	response.SuccessWithPage(c, workspaces.List, workspaces.Total, workspaces.Page, workspaces.PageSize)
 }
 
+// @Summary Update Quota
+// @Description Handles PUT /api/fileshare/v1/management/workspaces/{wid}.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param wid path string true "wid"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid} [put]
 func (h *WorkspaceHandler) UpdateQuota(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -145,6 +188,21 @@ func (h *WorkspaceHandler) UpdateQuota(c *gin.Context) {
 	response.Success(c, gin.H{"workspace_id": workspaceID, "quota_bytes": quotaBytes})
 }
 
+// @Summary Update Member Quota
+// @Description Handles PUT /api/fileshare/v1/management/workspaces/{wid}/members/{uid}/quota.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param uid path string true "uid"
+// @Param wid path string true "wid"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/members/{uid}/quota [put]
 func (h *WorkspaceHandler) UpdateMemberQuota(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -174,6 +232,21 @@ func (h *WorkspaceHandler) UpdateMemberQuota(c *gin.Context) {
 }
 
 // AddMember 向工作空间添加成员或修改其配额/角色
+// @Summary Add Member
+// @Description Handles POST /api/fileshare/v1/management/workspaces/{wid}/members.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param wid path string true "wid"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/members [post]
 func (h *WorkspaceHandler) AddMember(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -244,6 +317,22 @@ func (h *WorkspaceHandler) AddMember(c *gin.Context) {
 	response.Success(c, "添加/更新成功")
 }
 
+// @Summary List Members
+// @Description Handles GET /api/fileshare/v1/management/workspaces/{wid}/members.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param wid path string true "wid"
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/members [get]
 func (h *WorkspaceHandler) ListMembers(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -263,6 +352,22 @@ func (h *WorkspaceHandler) ListMembers(c *gin.Context) {
 	response.SuccessWithPage(c, members.List, members.Total, members.Page, members.PageSize)
 }
 
+// @Summary List Available Users
+// @Description Handles GET /api/fileshare/v1/management/workspaces/{wid}/available-users.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param wid path string true "wid"
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/available-users [get]
 func (h *WorkspaceHandler) ListAvailableUsers(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {
@@ -288,6 +393,21 @@ func (h *WorkspaceHandler) ListAvailableUsers(c *gin.Context) {
 	response.SuccessWithPage(c, items, users.Total, users.Page, users.PageSize)
 }
 
+// @Summary Remove Member
+// @Description Handles DELETE /api/fileshare/v1/management/workspaces/{wid}/members/{uid}.
+// @Tags Workspaces
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param uid path string true "uid"
+// @Param wid path string true "wid"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/workspaces/{wid}/members/{uid} [delete]
 func (h *WorkspaceHandler) RemoveMember(c *gin.Context) {
 	workspaceID, err := request.ParseUintParam(c, "wid")
 	if err != nil {

@@ -1,0 +1,107 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+version: 2
+
+project_name: file-share-manager
+
+before:
+  hooks:
+    - go -C server mod download
+    - npm --prefix frontend ci
+    - npm --prefix frontend run build:prod
+
+builds:
+  - id: fileshare-server
+    dir: server
+    main: ./cmd/server
+    binary: fileshare-server
+    flags:
+      - -trimpath
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      # Windows 包暂不发布，如需恢复取消注释即可。
+      # - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - >-
+        -s -w
+        -X main.Version=v{{ .Version }}
+        -X main.GitCommit={{ .ShortCommit }}
+        -X main.BuildTime={{ .CommitDate }}
+        -X main.GoVersion={{ .Env.GOVERSION }}
+
+  - id: fileshare-migrate
+    dir: server
+    main: ./cmd/migrate
+    binary: fs-migrate
+    flags:
+      - -trimpath
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      # Windows 包暂不发布，如需恢复取消注释即可。
+      # - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+
+archives:
+  - id: server
+    ids:
+      - fileshare-server
+      - fileshare-migrate
+    formats:
+      - tar.gz
+    # Windows 包暂不发布，如需恢复 Windows 构建时一并取消注释。
+    # format_overrides:
+    #   - goos: windows
+    #     formats:
+    #       - zip
+    name_template: >-
+      fileshare-server_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+      - src: server/configs/config-prod.toml
+        dst: configs/config-prod.toml
+      - src: frontend/dist/index.html
+        dst: frontend/index.html
+      - src: frontend/dist/logo.png
+        dst: frontend/logo.png
+      - src: frontend/dist/logo.svg
+        dst: frontend/logo.svg
+      - src: frontend/dist/assets/*
+        dst: frontend/assets
+        strip_parent: true
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: ghl1024
+    name: file-share-manager
+  draft: false
+  prerelease: auto
+  mode: replace

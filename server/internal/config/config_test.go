@@ -35,6 +35,7 @@ dbname = "fileshare"
 		t.Fatal(err)
 	}
 	t.Setenv("FILESHARE_SERVER_PORT", "29100")
+	t.Setenv("FILESHARE_ENABLE_SWAGGER", "true")
 	t.Setenv("FILESHARE_DB_PASSWORD", "test-password")
 	t.Setenv("FILESHARE_DB_LOG_QUERIES", "true")
 	t.Setenv("FILESHARE_STORAGE_MIN_FREE_BYTES", "1073741824")
@@ -69,6 +70,9 @@ dbname = "fileshare"
 	}
 	if got := GetConfig().Server.Port; got != 29100 {
 		t.Fatalf("Server.Port = %d, want 29100", got)
+	}
+	if !GetConfig().Server.EnableSwagger {
+		t.Fatal("Server.EnableSwagger = false, want true")
 	}
 	if got := GetConfig().Database.Password; got != "test-password" {
 		t.Fatalf("Database.Password = %q", got)
@@ -111,6 +115,29 @@ dbname = "fileshare"
 	}
 	if GetConfig().Lifecycle.QuarantineRetentionDays != 14 || GetConfig().Lifecycle.ReconcileBatchSize != 250 {
 		t.Fatalf("Lifecycle reconciliation config = %#v", GetConfig().Lifecycle)
+	}
+}
+
+func TestLoadConfigRejectsInvalidSwaggerEnvironmentValue(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	content := `[server]
+port = 29000
+mode = "debug"
+web_url = "http://localhost:39000"
+
+[database]
+host = "localhost"
+port = 3306
+user = "fileshare"
+dbname = "fileshare"
+`
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("FILESHARE_ENABLE_SWAGGER", "sometimes")
+	if err := LoadConfig(path); err == nil || !strings.Contains(err.Error(), "FILESHARE_ENABLE_SWAGGER") {
+		t.Fatalf("LoadConfig() error = %v, want Swagger boolean error", err)
 	}
 }
 

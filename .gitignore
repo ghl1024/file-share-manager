@@ -1,0 +1,57 @@
+# -----------------------------------------------------------------------------
+# Frontend
+# -----------------------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/dist-dev/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# -----------------------------------------------------------------------------
+# Backend (Go)
+# -----------------------------------------------------------------------------
+# Runtime data, logs, and local binaries
+server/data/
+server/logs/
+server/fs-server
+server/fs-migrate
+server/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# -----------------------------------------------------------------------------
+# General
+# -----------------------------------------------------------------------------
+# Local environment files
+.env
+.env.*
+
+# macOS metadata
+.DS_Store
+**/.DS_Store
+
+# IDE and Editor
+.idea/
+.vscode/
+*.swp
+*~
+.history/
+bin/
+
+
+# Custom Ignores
+scripts/
+testdata/
+docs/
+push.sh
+
+# Local temp
+scratch/

@@ -52,6 +52,19 @@ func NewFileHandler() *FileHandler {
 	return &FileHandler{nodes: dao.NewNodeDAO(), files: dao.NewFileDAO(), audit: dao.NewOperationLogDAO(), collaboration: dao.NewCollaborationDAO(), authz: authorization.NewService(), reader: configuredVersionReader}
 }
 
+// @Summary List Versions
+// @Description Handles GET /api/fileshare/v1/management/files/{id}/versions.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/files/{id}/versions [get]
 func (h *FileHandler) ListVersions(c *gin.Context) {
 	actor, node, ok := h.authorize(c)
 	if !ok {
@@ -69,6 +82,20 @@ func (h *FileHandler) ListVersions(c *gin.Context) {
 	response.Success(c, versions)
 }
 
+// @Summary Download
+// @Description Handles GET /api/fileshare/v1/management/files/{id}/download.
+// @Tags Files and folders
+// @Accept json
+// @Produce application/octet-stream
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param version query string false "version"
+// @Success 200 {file} binary
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/files/{id}/download [get]
 func (h *FileHandler) Download(c *gin.Context) {
 	actor, node, ok := h.authorize(c)
 	if !ok {
@@ -173,6 +200,20 @@ var textPreviewMIMEs = map[string]map[string]struct{}{
 	".ini":  {"text/plain": {}},
 }
 
+// @Summary Preview Info
+// @Description Handles GET /api/fileshare/v1/management/files/{id}/preview.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param version query string false "version"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/files/{id}/preview [get]
 func (h *FileHandler) PreviewInfo(c *gin.Context) {
 	actor, node, ok := h.authorize(c)
 	if !ok {
@@ -195,6 +236,20 @@ func (h *FileHandler) PreviewInfo(c *gin.Context) {
 	response.Success(c, descriptor)
 }
 
+// @Summary Preview Content
+// @Description Handles GET /api/fileshare/v1/management/files/{id}/preview/content.
+// @Tags Files and folders
+// @Accept json
+// @Produce application/octet-stream
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param version query string false "version"
+// @Success 200 {file} binary
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/files/{id}/preview/content [get]
 func (h *FileHandler) PreviewContent(c *gin.Context) {
 	actor, node, ok := h.authorize(c)
 	if !ok {
@@ -547,6 +602,21 @@ func applyCrossWorkspaceAuditContext(c *gin.Context, entry *model.OperationLog) 
 	entry.TargetWorkspaceID = &access.TargetWorkspaceID
 }
 
+// @Summary Restore Version
+// @Description Handles POST /api/fileshare/v1/management/files/{id}/versions/{version}/restore.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param version path string true "version"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/files/{id}/versions/{version}/restore [post]
 func (h *FileHandler) RestoreVersion(c *gin.Context) {
 	actor, node, ok := h.authorize(c)
 	if !ok {
@@ -592,6 +662,21 @@ func (h *FileHandler) RestoreVersion(c *gin.Context) {
 	response.Success(c, restored)
 }
 
+// @Summary Rescan Version
+// @Description Handles POST /api/fileshare/v1/management/files/{id}/versions/{version}/rescan.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param version path string true "version"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/files/{id}/versions/{version}/rescan [post]
 func (h *FileHandler) RescanVersion(c *gin.Context) {
 	actor, node, ok := h.authorize(c)
 	if !ok {

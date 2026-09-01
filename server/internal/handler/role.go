@@ -38,6 +38,21 @@ func NewRoleHandler() *RoleHandler {
 	return &RoleHandler{roles: dao.NewRoleDAO(), workspaces: dao.NewWorkspaceDAO()}
 }
 
+// @Summary List
+// @Description Handles GET /api/fileshare/v1/management/roles.
+// @Tags Workspace roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param keyword query string false "keyword"
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/roles [get]
 func (h *RoleHandler) List(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -52,6 +67,19 @@ func (h *RoleHandler) List(c *gin.Context) {
 	response.SuccessWithPage(c, roles.List, roles.Total, roles.Page, roles.PageSize)
 }
 
+// @Summary List Permissions
+// @Description Handles GET /api/fileshare/v1/management/system/permissions and GET /api/fileshare/v1/management/permissions.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/permissions [get]
+// @Router /management/permissions [get]
 func (h *RoleHandler) ListPermissions(c *gin.Context) {
 	permissions, err := h.roles.ListPermissions()
 	if err != nil {
@@ -61,6 +89,19 @@ func (h *RoleHandler) ListPermissions(c *gin.Context) {
 	response.Success(c, permissions)
 }
 
+// @Summary Get
+// @Description Handles GET /api/fileshare/v1/management/roles/{id}.
+// @Tags Workspace roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/roles/{id} [get]
 func (h *RoleHandler) Get(c *gin.Context) {
 	actor, roleID, ok := roleContext(c)
 	if !ok {
@@ -82,6 +123,20 @@ func (h *RoleHandler) Get(c *gin.Context) {
 	response.Success(c, gin.H{"role": role, "permissions": codes})
 }
 
+// @Summary Create
+// @Description Handles POST /api/fileshare/v1/management/roles.
+// @Tags Workspace roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/roles [post]
 func (h *RoleHandler) Create(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -114,6 +169,21 @@ func (h *RoleHandler) Create(c *gin.Context) {
 	response.Success(c, role)
 }
 
+// @Summary Update
+// @Description Handles PUT /api/fileshare/v1/management/roles/{id}.
+// @Tags Workspace roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/roles/{id} [put]
 func (h *RoleHandler) Update(c *gin.Context) {
 	actor, roleID, ok := roleContext(c)
 	if !ok {
@@ -144,6 +214,20 @@ func (h *RoleHandler) Update(c *gin.Context) {
 	response.Success(c, gin.H{"id": roleID})
 }
 
+// @Summary Delete
+// @Description Handles DELETE /api/fileshare/v1/management/roles/{id}.
+// @Tags Workspace roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/roles/{id} [delete]
 func (h *RoleHandler) Delete(c *gin.Context) {
 	actor, roleID, ok := roleContext(c)
 	if !ok {
@@ -162,6 +246,21 @@ func (h *RoleHandler) Delete(c *gin.Context) {
 	response.SuccessWithMessage(c, "删除成功", nil)
 }
 
+// @Summary Replace Permissions
+// @Description Handles PUT /api/fileshare/v1/management/roles/{id}/permissions.
+// @Tags Workspace roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/roles/{id}/permissions [put]
 func (h *RoleHandler) ReplacePermissions(c *gin.Context) {
 	actor, roleID, ok := roleContext(c)
 	if !ok {
@@ -190,6 +289,21 @@ func (h *RoleHandler) ReplacePermissions(c *gin.Context) {
 	response.Success(c, gin.H{"id": roleID, "permissions": req.Permissions})
 }
 
+// @Summary Assign User Roles
+// @Description Handles PUT /api/fileshare/v1/management/users/{id}/roles.
+// @Tags Workspace roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/users/{id}/roles [put]
 func (h *RoleHandler) AssignUserRoles(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -228,6 +342,20 @@ func (h *RoleHandler) AssignUserRoles(c *gin.Context) {
 	response.Success(c, gin.H{"user_id": userID, "role_ids": req.RoleIDs})
 }
 
+// @Summary Batch Assign User Roles
+// @Description Handles PUT /api/fileshare/v1/management/users/batch/roles.
+// @Tags Workspace roles
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/users/batch/roles [put]
 func (h *RoleHandler) BatchAssignUserRoles(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {

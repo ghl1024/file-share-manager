@@ -48,6 +48,19 @@ func NewACLHandler() *ACLHandler {
 	}
 }
 
+// @Summary List
+// @Description Handles GET /api/fileshare/v1/management/folders/{id}/acl.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/folders/{id}/acl [get]
 func (h *ACLHandler) List(c *gin.Context) {
 	actor, nodeID, ok := h.authorize(c)
 	if !ok {
@@ -61,6 +74,21 @@ func (h *ACLHandler) List(c *gin.Context) {
 	response.Success(c, entries)
 }
 
+// @Summary Replace
+// @Description Handles PUT /api/fileshare/v1/management/folders/{id}/acl.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/folders/{id}/acl [put]
 func (h *ACLHandler) Replace(c *gin.Context) {
 	actor, nodeID, ok := h.authorize(c)
 	if !ok {
@@ -97,6 +125,21 @@ func (h *ACLHandler) Replace(c *gin.Context) {
 	response.Success(c, entries)
 }
 
+// @Summary Set Inheritance
+// @Description Handles PUT /api/fileshare/v1/management/folders/{id}/inheritance.
+// @Tags Files and folders
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/folders/{id}/inheritance [put]
 func (h *ACLHandler) SetInheritance(c *gin.Context) {
 	actor, nodeID, ok := h.authorize(c)
 	if !ok {

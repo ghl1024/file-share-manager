@@ -13,13 +13,24 @@ package router
 import (
 	"time"
 
+	_ "file-share-manager/server/docs"
+	"file-share-manager/server/internal/config"
 	"file-share-manager/server/internal/handler"
 	"file-share-manager/server/internal/middleware"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func RegisterRoutes(engine *gin.Engine) {
+	RegisterRoutesWithConfig(engine, config.GetConfig())
+}
+
+func RegisterRoutesWithConfig(engine *gin.Engine, cfg *config.Config) {
+	if cfg != nil && cfg.Server.Mode != "release" && cfg.Server.EnableSwagger {
+		engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
 	authHandler := handler.NewAuthHandler()
 	shareHandler := handler.NewShareHandler()
 

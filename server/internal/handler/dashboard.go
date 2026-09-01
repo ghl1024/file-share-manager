@@ -38,6 +38,19 @@ func NewDashboardHandler() *DashboardHandler {
 	}
 }
 
+// @Summary Stats
+// @Description Handles GET /api/fileshare/v1/management/dashboard/stats.
+// @Tags Dashboard
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param scope query string false "scope"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/dashboard/stats [get]
 func (h *DashboardHandler) Stats(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {

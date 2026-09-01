@@ -34,6 +34,18 @@ func NewMenuHandler() *MenuHandler {
 	return &MenuHandler{menus: dao.NewMenuDAO()}
 }
 
+// @Summary List
+// @Description Handles GET /api/fileshare/v1/management/system/menus.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/menus [get]
 func (h *MenuHandler) List(c *gin.Context) {
 	menus, err := h.menus.ListTree()
 	if err != nil {
@@ -43,6 +55,19 @@ func (h *MenuHandler) List(c *gin.Context) {
 	response.Success(c, menus)
 }
 
+// @Summary Get
+// @Description Handles GET /api/fileshare/v1/management/system/menus/{id}.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/menus/{id} [get]
 func (h *MenuHandler) Get(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -75,6 +100,20 @@ type menuRequest struct {
 	Permissions []string `json:"permissions" binding:"max=50,dive,max=96"`
 }
 
+// @Summary Create
+// @Description Handles POST /api/fileshare/v1/management/system/menus.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/menus [post]
 func (h *MenuHandler) Create(c *gin.Context) {
 	var req menuRequest
 	if !request.BindJSON(c, &req) {
@@ -94,6 +133,21 @@ func (h *MenuHandler) Create(c *gin.Context) {
 	response.SuccessWithMessage(c, "创建成功", menu)
 }
 
+// @Summary Update
+// @Description Handles PUT /api/fileshare/v1/management/system/menus/{id}.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/menus/{id} [put]
 func (h *MenuHandler) Update(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {
@@ -122,6 +176,20 @@ func (h *MenuHandler) Update(c *gin.Context) {
 	response.Success(c, gin.H{"id": id})
 }
 
+// @Summary Delete
+// @Description Handles DELETE /api/fileshare/v1/management/system/menus/{id}.
+// @Tags System management
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/system/menus/{id} [delete]
 func (h *MenuHandler) Delete(c *gin.Context) {
 	id, err := request.ParseUintParam(c, "id")
 	if err != nil {

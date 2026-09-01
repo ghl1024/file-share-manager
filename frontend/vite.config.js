@@ -169,6 +169,10 @@ export default defineConfig(({ mode }) => {
         '/api/fileshare/v1': {
           target: apiProxyTarget,
           changeOrigin: true
+        },
+        '/swagger': {
+          target: apiProxyTarget,
+          changeOrigin: true
         }
       }
     },

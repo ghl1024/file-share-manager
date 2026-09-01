@@ -27,6 +27,20 @@ func NewAuditArchiveHandler() *AuditArchiveHandler {
 	return &AuditArchiveHandler{service: auditarchive.DefaultService()}
 }
 
+// @Summary List
+// @Description Handles GET /api/fileshare/v1/management/audit/archives.
+// @Tags Audit
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query string false "page"
+// @Param page_size query string false "page_size"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/audit/archives [get]
 func (h *AuditArchiveHandler) List(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -41,6 +55,19 @@ func (h *AuditArchiveHandler) List(c *gin.Context) {
 	response.SuccessWithPage(c, archives.List, archives.Total, archives.Page, archives.PageSize)
 }
 
+// @Summary Run
+// @Description Handles POST /api/fileshare/v1/management/audit/archives/run.
+// @Tags Audit
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/audit/archives/run [post]
 func (h *AuditArchiveHandler) Run(c *gin.Context) {
 	if _, ok := actorFromContext(c); !ok {
 		return

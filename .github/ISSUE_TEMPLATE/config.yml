@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 项目文档
+    url: https://github.com/ghl1024/file-share-manager#readme
+    about: 提交问题前请先查阅项目说明和文档中心。
+  - name: GitHub Discussions
+    url: https://github.com/ghl1024/file-share-manager/discussions
+    about: 一般性讨论、经验分享和开放问题可以在 Discussions 中进行。

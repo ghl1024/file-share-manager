@@ -60,6 +60,20 @@ func NewUploadHandler() *UploadHandler {
 	return &UploadHandler{uploads: dao.NewUploadDAO(), nodes: dao.NewNodeDAO(), files: dao.NewFileDAO(), authz: authorization.NewService()}
 }
 
+// @Summary Init
+// @Description Handles POST /api/fileshare/v1/management/uploads/init.
+// @Tags Uploads
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/uploads/init [post]
 func (h *UploadHandler) Init(c *gin.Context) {
 	actor, ok := actorFromContext(c)
 	if !ok {
@@ -221,6 +235,22 @@ func (h *UploadHandler) Init(c *gin.Context) {
 	response.Success(c, gin.H{"upload_id": uploadID, "total_chunks": totalChunks, "chunk_size": req.ChunkSize, "expires_at": expiresAt})
 }
 
+// @Summary Part
+// @Description Handles PUT /api/fileshare/v1/management/uploads/{id}/parts/{part_no}.
+// @Tags Uploads
+// @Accept application/octet-stream
+// @Param body body string true "Binary request body"
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param part_no path string true "part_no"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/uploads/{id}/parts/{part_no} [put]
 func (h *UploadHandler) Part(c *gin.Context) {
 	actor, session, partNo, ok := h.loadSession(c)
 	if !ok {
@@ -267,6 +297,20 @@ func (h *UploadHandler) Part(c *gin.Context) {
 	response.Success(c, gin.H{"upload_id": session.ID, "part_no": partNo, "size": size, "received_parts": received})
 }
 
+// @Summary Status
+// @Description Handles GET /api/fileshare/v1/management/uploads/{id} and GET /api/fileshare/v1/management/uploads/{id}/status.
+// @Tags Uploads
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/uploads/{id} [get]
+// @Router /management/uploads/{id}/status [get]
 func (h *UploadHandler) Status(c *gin.Context) {
 	_, session, _, ok := h.loadSession(c)
 	if !ok {
@@ -287,6 +331,21 @@ func (h *UploadHandler) Status(c *gin.Context) {
 	})
 }
 
+// @Summary Complete
+// @Description Handles POST /api/fileshare/v1/management/uploads/{id}/complete.
+// @Tags Uploads
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param body body object true "Request body"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/uploads/{id}/complete [post]
 func (h *UploadHandler) Complete(c *gin.Context) {
 	actor, session, _, ok := h.loadSession(c)
 	if !ok {
@@ -383,6 +442,20 @@ func (h *UploadHandler) Complete(c *gin.Context) {
 	response.Success(c, gin.H{"node_id": version.NodeID, "version_no": version.VersionNo, "size": version.Size, "sha256": version.SHA256, "scan_status": version.ScanStatus})
 }
 
+// @Summary Cancel
+// @Description Handles DELETE /api/fileshare/v1/management/uploads/{id}.
+// @Tags Uploads
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "id"
+// @Param X-Requested-With header string false "Set to XMLHttpRequest when using the session cookie"
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 401 {object} response.Response
+// @Failure 403 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /management/uploads/{id} [delete]
 func (h *UploadHandler) Cancel(c *gin.Context) {
 	actor, session, _, ok := h.loadSession(c)
 	if !ok {

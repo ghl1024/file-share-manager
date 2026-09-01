@@ -1,0 +1,30 @@
+name: Issue Auto Reply
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  reply:
+    if: github.event.label.name == 'bug' || github.event.label.name == 'enhancement' || github.event.label.name == 'question'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reply to labeled issue
+        uses: actions/github-script@v7 # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const login = context.payload.issue.user.login;
+            const body = `你好 @${login}，感谢反馈。维护者会根据复现信息、影响范围和优先级进行确认。
+
+            Hello @${login}, thank you for the report. A maintainer will review the reproduction details and impact.`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });

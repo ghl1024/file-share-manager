@@ -1,0 +1,16 @@
+$:
+  vscode:
+    - docker:
+        image: cnbcool/default-dev-env
+      runner:
+        cpus: 8
+      services:
+        - vscode
+        - docker
+      env:
+        HISTFILE: /root/.cnb/system/zsh_history
+      stages:
+        - name: 安装 Server 依赖
+          script: cd server && go mod download
+        - name: 安装 Frontend 依赖
+          script: cd frontend && npm ci

@@ -11,15 +11,26 @@
 package router
 
 import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"regexp"
+	"strings"
 	"testing"
+
+	"file-share-manager/server/internal/config"
 
 	"github.com/gin-gonic/gin"
 )
 
+var ginPathParameterPattern = regexp.MustCompile(`:([A-Za-z0-9_]+)`)
+
 func TestRegisterRoutes(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()
-	RegisterRoutes(engine)
+	RegisterRoutesWithConfig(engine, nil)
 	if len(engine.Routes()) == 0 {
 		t.Fatal("expected API routes to be registered")
 	}
@@ -101,5 +112,98 @@ func TestRegisterRoutes(t *testing.T) {
 		if !routes[expected] {
 			t.Errorf("missing route %s", expected)
 		}
+	}
+}
+
+func TestSwaggerDocumentsEveryAPIRoute(t *testing.T) {
+	content, err := os.ReadFile("../../docs/swagger.json")
+	if err != nil {
+		t.Fatalf("read generated Swagger document: %v", err)
+	}
+	var document struct {
+		BasePath string                                `json:"basePath"`
+		Paths    map[string]map[string]json.RawMessage `json:"paths"`
+	}
+	if err := json.Unmarshal(content, &document); err != nil {
+		t.Fatalf("parse generated Swagger document: %v", err)
+	}
+
+	engine := gin.New()
+	RegisterRoutesWithConfig(engine, nil)
+	actualOperations := 0
+	for _, route := range engine.Routes() {
+		if !strings.HasPrefix(route.Path, "/api/fileshare/v1/") {
+			continue
+		}
+		actualOperations++
+		path := ginPathParameterPattern.ReplaceAllString(route.Path, `{$1}`)
+		documentedPath := strings.TrimPrefix(path, strings.TrimRight(document.BasePath, "/"))
+		if documentedPath == "" {
+			documentedPath = "/"
+		}
+		operation, exists := document.Paths[documentedPath][strings.ToLower(route.Method)]
+		if !exists {
+			t.Errorf("Swagger is missing %s %s (document path %s)", route.Method, path, documentedPath)
+			continue
+		}
+		if requiresBrowserRequestHeader(route.Method, route.Path) && !bytes.Contains(operation, []byte(`"X-Requested-With"`)) {
+			t.Errorf("Swagger is missing the X-Requested-With parameter for %s %s", route.Method, path)
+		}
+	}
+	documentedOperations := 0
+	for _, operations := range document.Paths {
+		documentedOperations += len(operations)
+	}
+	if documentedOperations != actualOperations {
+		t.Fatalf("Swagger operations = %d, registered API routes = %d", documentedOperations, actualOperations)
+	}
+}
+
+func requiresBrowserRequestHeader(method, path string) bool {
+	if method == http.MethodGet || method == http.MethodHead || method == http.MethodOptions {
+		return false
+	}
+	return path != "/api/fileshare/v1/auth/login" && !strings.HasPrefix(path, "/api/fileshare/v1/share/")
+}
+
+func TestRegisterRoutesWithConfigRestrictsSwagger(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		mode    string
+		enabled bool
+		want    bool
+	}{
+		{name: "debug disabled", mode: "debug"},
+		{name: "debug explicitly enabled", mode: "debug", enabled: true, want: true},
+		{name: "release remains disabled", mode: "release", enabled: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			engine := gin.New()
+			RegisterRoutesWithConfig(engine, &config.Config{Server: config.ServerConfig{Mode: test.mode, EnableSwagger: test.enabled}})
+			found := false
+			for _, route := range engine.Routes() {
+				found = found || route.Path == "/swagger/*any"
+			}
+			if found != test.want {
+				t.Fatalf("Swagger route present = %v, want %v", found, test.want)
+			}
+		})
+	}
+}
+
+func TestSwaggerUIIsServedWhenExplicitlyEnabledInDebugMode(t *testing.T) {
+	engine := gin.New()
+	RegisterRoutesWithConfig(engine, &config.Config{Server: config.ServerConfig{Mode: "debug", EnableSwagger: true}})
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/swagger/index.html", nil)
+	engine.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("GET /swagger/index.html status = %d, want 200", recorder.Code)
+	}
+	if contentType := recorder.Header().Get("Content-Type"); !strings.Contains(contentType, "text/html") {
+		t.Fatalf("GET /swagger/index.html Content-Type = %q", contentType)
+	}
+	if !strings.Contains(recorder.Body.String(), `<div id="swagger-ui"></div>`) {
+		t.Fatal("GET /swagger/index.html did not return Swagger UI")
 	}
 }

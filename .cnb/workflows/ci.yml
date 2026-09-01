@@ -1,0 +1,46 @@
+main:
+  push:
+    - name: ci
+      runner:
+        cpus: 4
+      stages:
+        - name: 检查 Server
+          image: golang:1.26.5
+          script: |
+            export GOPROXY=https://goproxy.cn,direct
+            cd server
+            go mod verify
+            go test ./...
+            go vet ./...
+            go test -race ./...
+            go build ./...
+        - name: 构建 Frontend
+          image: node:22-alpine
+          script: |
+            cd frontend
+            npm ci
+            npm audit --audit-level=high
+            npm run build:prod
+
+  pull_request:
+    - name: pr-check
+      runner:
+        cpus: 4
+      stages:
+        - name: 检查 Server
+          image: golang:1.26.5
+          script: |
+            export GOPROXY=https://goproxy.cn,direct
+            cd server
+            go mod verify
+            go test ./...
+            go vet ./...
+            go test -race ./...
+            go build ./...
+        - name: 构建 Frontend
+          image: node:22-alpine
+          script: |
+            cd frontend
+            npm ci
+            npm audit --audit-level=high
+            npm run build:prod

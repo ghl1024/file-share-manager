@@ -1,0 +1,5 @@
+include:
+  - .cnb/workflows/ci.yml
+  - .cnb/workflows/vscode.yml
+  - .cnb/workflows/build-docker-images.yml
+  - .cnb/workflows/release.yml
