@@ -11,12 +11,12 @@
 package database
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
 
 	"file-share-manager/server/internal/model"
+	"file-share-manager/server/internal/pkg/testsql"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
@@ -47,16 +47,28 @@ func TestAuditPrivilegeIsolationMySQL(t *testing.T) {
 	archiveUser := "fs_arc_" + suffix
 	businessPassword := "App" + suffix + "!9"
 	archivePassword := "Arc" + suffix + "!9"
+	databaseIdentifier, err := testsql.Identifier(databaseName)
+	if err != nil {
+		t.Fatalf("quote temporary audit database: %v", err)
+	}
+	businessUserIdentifier, err := testsql.Identifier(businessUser)
+	if err != nil {
+		t.Fatalf("quote temporary business user: %v", err)
+	}
+	archiveUserIdentifier, err := testsql.Identifier(archiveUser)
+	if err != nil {
+		t.Fatalf("quote temporary archive user: %v", err)
+	}
 	t.Cleanup(func() {
-		_ = adminDB.Exec(fmt.Sprintf("DROP USER IF EXISTS `%s`@'%%'", businessUser)).Error
-		_ = adminDB.Exec(fmt.Sprintf("DROP USER IF EXISTS `%s`@'%%'", archiveUser)).Error
-		_ = adminDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", databaseName)).Error
+		_ = adminDB.Exec("DROP USER IF EXISTS " + businessUserIdentifier + "@'%'").Error
+		_ = adminDB.Exec("DROP USER IF EXISTS " + archiveUserIdentifier + "@'%'").Error
+		_ = adminDB.Exec("DROP DATABASE IF EXISTS " + databaseIdentifier).Error
 		if sqlDB, sqlErr := adminDB.DB(); sqlErr == nil {
 			_ = sqlDB.Close()
 		}
 	})
 
-	if err := adminDB.Exec(fmt.Sprintf("CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", databaseName)).Error; err != nil {
+	if err := adminDB.Exec("CREATE DATABASE " + databaseIdentifier + " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci").Error; err != nil {
 		t.Fatalf("create temporary audit database: %v", err)
 	}
 	schemaConfig := *adminConfig
@@ -75,13 +87,13 @@ func TestAuditPrivilegeIsolationMySQL(t *testing.T) {
 	})
 
 	statements := []string{
-		fmt.Sprintf("CREATE USER `%s`@'%%' IDENTIFIED BY '%s'", businessUser, businessPassword),
-		fmt.Sprintf("CREATE USER `%s`@'%%' IDENTIFIED BY '%s'", archiveUser, archivePassword),
-		fmt.Sprintf("GRANT SELECT, INSERT ON `%s`.`operation_logs` TO `%s`@'%%'", databaseName, businessUser),
-		fmt.Sprintf("GRANT SELECT, INSERT, UPDATE ON `%s`.`audit_streams` TO `%s`@'%%'", databaseName, businessUser),
-		fmt.Sprintf("GRANT SELECT ON `%s`.`audit_archives` TO `%s`@'%%'", databaseName, businessUser),
-		fmt.Sprintf("GRANT SELECT, DELETE ON `%s`.`operation_logs` TO `%s`@'%%'", databaseName, archiveUser),
-		fmt.Sprintf("GRANT SELECT, INSERT, UPDATE ON `%s`.`audit_archives` TO `%s`@'%%'", databaseName, archiveUser),
+		"CREATE USER " + businessUserIdentifier + "@'%' IDENTIFIED BY " + testsql.Literal(businessPassword),
+		"CREATE USER " + archiveUserIdentifier + "@'%' IDENTIFIED BY " + testsql.Literal(archivePassword),
+		"GRANT SELECT, INSERT ON " + databaseIdentifier + ".`operation_logs` TO " + businessUserIdentifier + "@'%'",
+		"GRANT SELECT, INSERT, UPDATE ON " + databaseIdentifier + ".`audit_streams` TO " + businessUserIdentifier + "@'%'",
+		"GRANT SELECT ON " + databaseIdentifier + ".`audit_archives` TO " + businessUserIdentifier + "@'%'",
+		"GRANT SELECT, DELETE ON " + databaseIdentifier + ".`operation_logs` TO " + archiveUserIdentifier + "@'%'",
+		"GRANT SELECT, INSERT, UPDATE ON " + databaseIdentifier + ".`audit_archives` TO " + archiveUserIdentifier + "@'%'",
 	}
 	for _, statement := range statements {
 		if err := adminDB.Exec(statement).Error; err != nil {

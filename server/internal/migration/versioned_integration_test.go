@@ -11,10 +11,11 @@
 package migration
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
+
+	"file-share-manager/server/internal/pkg/testsql"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
@@ -77,11 +78,15 @@ func openVersionedMigrationTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("connect test MySQL: %v", err)
 	}
 	databaseName := "fs_migration_" + strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
-	if err := adminDB.Exec(fmt.Sprintf("CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", databaseName)).Error; err != nil {
+	databaseIdentifier, err := testsql.Identifier(databaseName)
+	if err != nil {
+		t.Fatalf("quote temporary migration database: %v", err)
+	}
+	if err := adminDB.Exec("CREATE DATABASE " + databaseIdentifier + " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci").Error; err != nil {
 		t.Fatalf("create temporary migration database: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = adminDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", databaseName)).Error
+		_ = adminDB.Exec("DROP DATABASE IF EXISTS " + databaseIdentifier).Error
 		if sqlDB, sqlErr := adminDB.DB(); sqlErr == nil {
 			_ = sqlDB.Close()
 		}

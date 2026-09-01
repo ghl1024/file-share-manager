@@ -34,9 +34,11 @@ dbname = "fileshare"
 	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatal(err)
 	}
+	databasePassword := "db-test-" + strings.Repeat("x", 16)
+	auditDatabasePassword := "audit-test-" + strings.Repeat("y", 16)
 	t.Setenv("FILESHARE_SERVER_PORT", "29100")
 	t.Setenv("FILESHARE_ENABLE_SWAGGER", "true")
-	t.Setenv("FILESHARE_DB_PASSWORD", "test-password")
+	t.Setenv("FILESHARE_DB_PASSWORD", databasePassword)
 	t.Setenv("FILESHARE_DB_LOG_QUERIES", "true")
 	t.Setenv("FILESHARE_STORAGE_MIN_FREE_BYTES", "1073741824")
 	t.Setenv("FILESHARE_STORAGE_WARN_FREE_PERCENT", "25")
@@ -58,7 +60,7 @@ dbname = "fileshare"
 	t.Setenv("FILESHARE_AUDIT_ARCHIVE_BATCH_SIZE", "500")
 	t.Setenv("FILESHARE_AUDIT_ARCHIVE_PREFIX", "audit-evidence")
 	t.Setenv("FILESHARE_AUDIT_DB_USER", "fileshare_archive")
-	t.Setenv("FILESHARE_AUDIT_DB_PASSWORD", "archive-password")
+	t.Setenv("FILESHARE_AUDIT_DB_PASSWORD", auditDatabasePassword)
 	t.Setenv("FILESHARE_CLAMAV_RETRY_MAX_ATTEMPTS", "5")
 	t.Setenv("FILESHARE_CLAMAV_RETRY_INTERVAL_MINUTES", "10")
 	t.Setenv("FILESHARE_CLAMAV_RETRY_BATCH_SIZE", "75")
@@ -74,7 +76,7 @@ dbname = "fileshare"
 	if !GetConfig().Server.EnableSwagger {
 		t.Fatal("Server.EnableSwagger = false, want true")
 	}
-	if got := GetConfig().Database.Password; got != "test-password" {
+	if got := GetConfig().Database.Password; got != databasePassword {
 		t.Fatalf("Database.Password = %q", got)
 	}
 	if !GetConfig().Database.LogQueries {
@@ -107,7 +109,7 @@ dbname = "fileshare"
 	if !GetConfig().Audit.ArchiveEnabled || GetConfig().Audit.ArchiveIntervalMinutes != 30 || GetConfig().Audit.ArchiveBatchSize != 500 || GetConfig().Audit.ArchivePrefix != "audit-evidence/" {
 		t.Fatalf("Audit archive config = %#v", GetConfig().Audit)
 	}
-	if GetConfig().AuditDatabase.User != "fileshare_archive" || GetConfig().AuditDatabase.Password != "archive-password" || GetConfig().AuditDatabase.Host != "localhost" || GetConfig().AuditDatabase.DBName != "fileshare" {
+	if GetConfig().AuditDatabase.User != "fileshare_archive" || GetConfig().AuditDatabase.Password != auditDatabasePassword || GetConfig().AuditDatabase.Host != "localhost" || GetConfig().AuditDatabase.DBName != "fileshare" {
 		t.Fatalf("Audit database config = %#v", GetConfig().AuditDatabase)
 	}
 	if GetConfig().ClamAV.RetryMaxAttempts != 5 || GetConfig().ClamAV.RetryIntervalMinutes != 10 || GetConfig().ClamAV.RetryBatchSize != 75 {

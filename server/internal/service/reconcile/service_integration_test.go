@@ -12,7 +12,6 @@ package reconcile
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,6 +21,7 @@ import (
 	"file-share-manager/server/internal/config"
 	"file-share-manager/server/internal/model"
 	"file-share-manager/server/internal/pkg/database"
+	"file-share-manager/server/internal/pkg/testsql"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
@@ -192,11 +192,15 @@ func openReconcileTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("connect test MySQL: %v", err)
 	}
 	databaseName := "fs_reconcile_" + strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
-	if err := adminDB.Exec(fmt.Sprintf("CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", databaseName)).Error; err != nil {
+	databaseIdentifier, err := testsql.Identifier(databaseName)
+	if err != nil {
+		t.Fatalf("quote temporary reconciliation database: %v", err)
+	}
+	if err := adminDB.Exec("CREATE DATABASE " + databaseIdentifier + " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci").Error; err != nil {
 		t.Fatalf("create temporary reconciliation database: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = adminDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", databaseName)).Error
+		_ = adminDB.Exec("DROP DATABASE IF EXISTS " + databaseIdentifier).Error
 		if sqlDB, sqlErr := adminDB.DB(); sqlErr == nil {
 			_ = sqlDB.Close()
 		}

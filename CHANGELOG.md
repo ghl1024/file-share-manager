@@ -6,6 +6,14 @@
 
 ### 新增
 
+#### 2026-09-02
+
+- 升级 x/net、go-ntlmssp、quic-go 和 edwards25519
+- 加固集成测试中的动态 MySQL SQL 构造
+- 移除分享访问 cookie 的硬编码签名密钥
+- 使用运行时生成的测试密码
+- 保持 server/configs 下配置文件不变
+
 #### 2026-09-01
 
 - 补齐 Swagger API 文档与调试入口

@@ -27,6 +27,7 @@ import (
 	"file-share-manager/server/internal/pkg/database"
 	filesharejwt "file-share-manager/server/internal/pkg/jwt"
 	"file-share-manager/server/internal/pkg/security"
+	"file-share-manager/server/internal/pkg/testsql"
 
 	"github.com/gin-gonic/gin"
 	mysqldriver "github.com/go-sql-driver/mysql"
@@ -615,11 +616,15 @@ func openAuthorizationTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("connect test MySQL: %v", err)
 	}
 	databaseName := "fs_http_" + strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
-	if err := adminDB.Exec(fmt.Sprintf("CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", databaseName)).Error; err != nil {
+	databaseIdentifier, err := testsql.Identifier(databaseName)
+	if err != nil {
+		t.Fatalf("quote temporary authorization database: %v", err)
+	}
+	if err := adminDB.Exec("CREATE DATABASE " + databaseIdentifier + " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci").Error; err != nil {
 		t.Fatalf("create temporary authorization database: %v", err)
 	}
 	t.Cleanup(func() {
-		_ = adminDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", databaseName)).Error
+		_ = adminDB.Exec("DROP DATABASE IF EXISTS " + databaseIdentifier).Error
 		if sqlDB, sqlErr := adminDB.DB(); sqlErr == nil {
 			_ = sqlDB.Close()
 		}

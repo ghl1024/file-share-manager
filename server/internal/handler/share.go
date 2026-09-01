@@ -1023,6 +1023,9 @@ func setShareAccessCookie(c *gin.Context, shareID uint) {
 	expires := time.Now().Add(shareAccessLifetime)
 	payload := fmt.Sprintf("%d:%d", shareID, expires.Unix())
 	signature := signSharePayload(payload)
+	if signature == "" {
+		return
+	}
 	value := base64.RawURLEncoding.EncodeToString([]byte(payload + "." + signature))
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie(shareAccessCookieName, value, int(shareAccessLifetime.Seconds()), "/api/fileshare/v1/share", "", secureShareCookie(), true)
@@ -1038,7 +1041,11 @@ func validShareAccess(c *gin.Context, shareID uint) bool {
 		return false
 	}
 	parts := strings.Split(string(decoded), ".")
-	if len(parts) != 2 || !hmac.Equal([]byte(parts[1]), []byte(signSharePayload(parts[0]))) {
+	if len(parts) != 2 {
+		return false
+	}
+	expectedSignature := signSharePayload(parts[0])
+	if expectedSignature == "" || !hmac.Equal([]byte(parts[1]), []byte(expectedSignature)) {
 		return false
 	}
 	fields := strings.Split(parts[0], ":")
@@ -1050,11 +1057,11 @@ func validShareAccess(c *gin.Context, shareID uint) bool {
 }
 
 func signSharePayload(payload string) string {
-	secret := "fileshare-share-cookie"
-	if cfg := config.GetConfig(); cfg != nil && cfg.JWT.Secret != "" {
-		secret = cfg.JWT.Secret
+	cfg := config.GetConfig()
+	if cfg == nil || strings.TrimSpace(cfg.JWT.Secret) == "" {
+		return ""
 	}
-	hash := hmac.New(sha256.New, []byte(secret))
+	hash := hmac.New(sha256.New, []byte(cfg.JWT.Secret))
 	_, _ = hash.Write([]byte(payload))
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }

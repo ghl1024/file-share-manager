@@ -12,13 +12,13 @@ package dao
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"file-share-manager/server/internal/model"
+	"file-share-manager/server/internal/pkg/testsql"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
@@ -122,7 +122,11 @@ func openTransactionTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("connect test MySQL: %v", err)
 	}
 	databaseName := "fileshare_tx_" + strings.ReplaceAll(uuid.NewString(), "-", "")[:16]
-	if err := adminDB.Exec(fmt.Sprintf("CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", databaseName)).Error; err != nil {
+	databaseIdentifier, err := testsql.Identifier(databaseName)
+	if err != nil {
+		t.Fatalf("quote temporary transaction database: %v", err)
+	}
+	if err := adminDB.Exec("CREATE DATABASE " + databaseIdentifier + " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci").Error; err != nil {
 		t.Fatalf("create temporary test database: %v", err)
 	}
 
@@ -133,14 +137,14 @@ func openTransactionTestDB(t *testing.T) *gorm.DB {
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
-		_ = adminDB.Exec(fmt.Sprintf("DROP DATABASE `%s`", databaseName)).Error
+		_ = adminDB.Exec("DROP DATABASE " + databaseIdentifier).Error
 		t.Fatalf("connect temporary test database: %v", err)
 	}
 	t.Cleanup(func() {
 		if sqlDB, sqlErr := db.DB(); sqlErr == nil {
 			_ = sqlDB.Close()
 		}
-		if dropErr := adminDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", databaseName)).Error; dropErr != nil {
+		if dropErr := adminDB.Exec("DROP DATABASE IF EXISTS " + databaseIdentifier).Error; dropErr != nil {
 			t.Errorf("drop temporary test database: %v", dropErr)
 		}
 		if sqlDB, sqlErr := adminDB.DB(); sqlErr == nil {
