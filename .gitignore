@@ -51,6 +51,8 @@ bin/
 scripts/
 testdata/
 docs/
+!server/docs/
+!server/docs/**
 push.sh
 
 # Local temp

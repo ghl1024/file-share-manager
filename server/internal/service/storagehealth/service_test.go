@@ -23,7 +23,7 @@ func TestCheckReadyAndCleansWriteProbes(t *testing.T) {
 	staging := t.TempDir()
 	backup := t.TempDir()
 	report := Check(&config.Config{
-		Storage: config.StorageConfig{RootPath: root, StagingPath: staging, MinFreeBytes: 1 << 20, WarnFreePercent: 2, MinFreePercent: 1},
+		Storage: config.StorageConfig{RootPath: root, StagingPath: staging},
 		Backup:  config.BackupConfig{Type: "local", LocalPath: backup},
 	})
 	if report.Status != "ready" || !report.Root.Writable || !report.Staging.Writable || report.Backup == nil || !report.Backup.Writable {
@@ -48,14 +48,28 @@ func TestCheckEscalatesWhenCriticalCapacityThresholdIsBreached(t *testing.T) {
 	}
 }
 
-func TestCheckWarnsBeforeCriticalThreshold(t *testing.T) {
-	root := t.TempDir()
-	report := Check(&config.Config{
-		Storage: config.StorageConfig{RootPath: root, StagingPath: root, MinFreeBytes: 1 << 20, WarnFreePercent: 99, MinFreePercent: 1},
-		Backup:  config.BackupConfig{Type: "s3"},
-	})
-	if report.Status != "warning" || !report.Root.LowSpace || report.Root.CriticalSpace {
-		t.Fatalf("report = %#v", report)
+func TestCapacityStateWarnsBeforeCriticalThreshold(t *testing.T) {
+	critical, low := capacityState(8<<30, 15, 1<<20, 20, 10)
+	if critical || !low {
+		t.Fatalf("capacityState() = critical %v, low %v; want warning only", critical, low)
+	}
+}
+
+func TestCapacityStateCriticalThresholds(t *testing.T) {
+	for _, test := range []struct {
+		name        string
+		freeBytes   uint64
+		freePercent float64
+	}{
+		{name: "minimum bytes", freeBytes: 512 << 10, freePercent: 50},
+		{name: "minimum percent", freeBytes: 8 << 30, freePercent: 5},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			critical, low := capacityState(test.freeBytes, test.freePercent, 1<<20, 20, 10)
+			if !critical || !low {
+				t.Fatalf("capacityState() = critical %v, low %v; want both true", critical, low)
+			}
+		})
 	}
 }
 

@@ -1,0 +1,6610 @@
+basePath: /api/fileshare/v1
+definitions:
+  response.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      details: {}
+      message:
+        type: string
+    type: object
+info:
+  contact:
+    name: HaydenGuo
+    url: https://hayden.pub
+  description: File Share Manager workspace file sharing and governance API.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  termsOfService: https://github.com/ghl1024/file-share-manager
+  title: File Share Manager API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/auth/login.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Login
+      tags:
+      - Authentication
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/auth/logout.
+      parameters:
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - Authentication
+  /auth/password:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/auth/password.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Change Password
+      tags:
+      - Authentication
+  /auth/profile:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/auth/profile.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Profile
+      tags:
+      - Authentication
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/auth/profile.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update Profile
+      tags:
+      - Authentication
+  /auth/session:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/auth/session.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Session
+      tags:
+      - Authentication
+  /auth/workspace/switch:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/auth/workspace/switch.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Switch Workspace
+      tags:
+      - Authentication
+  /auth/workspaces:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/auth/workspaces.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Workspaces
+      tags:
+      - Authentication
+  /management/audit/archives:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/archives.
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Audit
+  /management/audit/archives/run:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/audit/archives/run.
+      parameters:
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Run
+      tags:
+      - Audit
+  /management/audit/events:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/logs and GET /api/fileshare/v1/management/audit/events.
+      parameters:
+      - description: action
+        in: query
+        name: action
+        type: string
+      - description: actor_type
+        in: query
+        name: actor_type
+        type: string
+      - description: category
+        in: query
+        name: category
+        type: string
+      - description: from
+        in: query
+        name: from
+        type: string
+      - description: ip
+        in: query
+        name: ip
+        type: string
+      - description: method
+        in: query
+        name: method
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      - description: request_id
+        in: query
+        name: request_id
+        type: string
+      - description: result
+        in: query
+        name: result
+        type: string
+      - description: severity
+        in: query
+        name: severity
+        type: string
+      - description: status
+        in: query
+        name: status
+        type: string
+      - description: target_id
+        in: query
+        name: target_id
+        type: string
+      - description: target_type
+        in: query
+        name: target_type
+        type: string
+      - description: to
+        in: query
+        name: to
+        type: string
+      - description: username
+        in: query
+        name: username
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Audit
+  /management/audit/events/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/events/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Detail
+      tags:
+      - Audit
+  /management/audit/exports:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/exports.
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Audit
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/audit/exports.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create
+      tags:
+      - Audit
+  /management/audit/exports/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/exports/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get
+      tags:
+      - Audit
+  /management/audit/exports/{id}/download:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/exports/{id}/download.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Download
+      tags:
+      - Audit
+  /management/audit/logs:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/logs and GET /api/fileshare/v1/management/audit/events.
+      parameters:
+      - description: action
+        in: query
+        name: action
+        type: string
+      - description: actor_type
+        in: query
+        name: actor_type
+        type: string
+      - description: category
+        in: query
+        name: category
+        type: string
+      - description: from
+        in: query
+        name: from
+        type: string
+      - description: ip
+        in: query
+        name: ip
+        type: string
+      - description: method
+        in: query
+        name: method
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      - description: request_id
+        in: query
+        name: request_id
+        type: string
+      - description: result
+        in: query
+        name: result
+        type: string
+      - description: severity
+        in: query
+        name: severity
+        type: string
+      - description: status
+        in: query
+        name: status
+        type: string
+      - description: target_id
+        in: query
+        name: target_id
+        type: string
+      - description: target_type
+        in: query
+        name: target_type
+        type: string
+      - description: to
+        in: query
+        name: to
+        type: string
+      - description: username
+        in: query
+        name: username
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Audit
+  /management/audit/policy:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/policy.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Policy
+      tags:
+      - Audit
+  /management/audit/security-events:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/security-events.
+      parameters:
+      - description: action
+        in: query
+        name: action
+        type: string
+      - description: actor_type
+        in: query
+        name: actor_type
+        type: string
+      - description: from
+        in: query
+        name: from
+        type: string
+      - description: ip
+        in: query
+        name: ip
+        type: string
+      - description: method
+        in: query
+        name: method
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      - description: request_id
+        in: query
+        name: request_id
+        type: string
+      - description: result
+        in: query
+        name: result
+        type: string
+      - description: severity
+        in: query
+        name: severity
+        type: string
+      - description: status
+        in: query
+        name: status
+        type: string
+      - description: target_id
+        in: query
+        name: target_id
+        type: string
+      - description: target_type
+        in: query
+        name: target_type
+        type: string
+      - description: to
+        in: query
+        name: to
+        type: string
+      - description: username
+        in: query
+        name: username
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Security Events
+      tags:
+      - Audit
+  /management/audit/streams/{workspace_id}/verify:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/audit/streams/{workspace_id}/verify.
+      parameters:
+      - description: workspace_id
+        in: path
+        name: workspace_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Verify Stream
+      tags:
+      - Audit
+  /management/backup-restore-drills:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/backup-restore-drills.
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Restore Drills
+      tags:
+      - Backup and restore
+  /management/backups:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/backups.
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Backup and restore
+  /management/backups/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/backups/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Detail
+      tags:
+      - Backup and restore
+  /management/backups/{id}/restore:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/backups/{id}/restore.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Restore
+      tags:
+      - Backup and restore
+  /management/backups/{id}/restore-drill:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/backups/{id}/restore-drill.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Restore Drill
+      tags:
+      - Backup and restore
+  /management/backups/{id}/restore-workspace:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/backups/{id}/restore-workspace.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Restore Workspace
+      tags:
+      - Backup and restore
+  /management/backups/{id}/retry:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/backups/{id}/retry.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Retry
+      tags:
+      - Backup and restore
+  /management/backups/{id}/verify:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/backups/{id}/verify.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Verify
+      tags:
+      - Backup and restore
+  /management/backups/baseline:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/backups/baseline.
+      parameters:
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create Baseline
+      tags:
+      - Backup and restore
+  /management/backups/compact:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/backups/compact.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Compact
+      tags:
+      - Backup and restore
+  /management/backups/health:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/backups/health.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Health
+      tags:
+      - Backup and restore
+  /management/backups/incremental:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/backups/incremental.
+      parameters:
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create Incremental
+      tags:
+      - Backup and restore
+  /management/batch-downloads:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/batch-downloads.
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Batch downloads
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/batch-downloads.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create
+      tags:
+      - Batch downloads
+  /management/batch-downloads/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/batch-downloads/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get
+      tags:
+      - Batch downloads
+  /management/batch-downloads/{id}/download:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/batch-downloads/{id}/download.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Download
+      tags:
+      - Batch downloads
+  /management/batch-downloads/{id}/retry:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/batch-downloads/{id}/retry.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Retry
+      tags:
+      - Batch downloads
+  /management/collaboration/recent:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/collaboration/recent.
+      parameters:
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Recent
+      tags:
+      - Collaboration
+  /management/collaboration/shared-with-me:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/collaboration/shared-with-me.
+      parameters:
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Shared With Me
+      tags:
+      - Collaboration
+  /management/dashboard/stats:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/dashboard/stats.
+      parameters:
+      - description: scope
+        in: query
+        name: scope
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Stats
+      tags:
+      - Dashboard
+  /management/favorites:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/favorites.
+      parameters:
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Favorites
+      tags:
+      - Files and folders
+  /management/files/{id}/download:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/files/{id}/download.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: version
+        in: query
+        name: version
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Download
+      tags:
+      - Files and folders
+  /management/files/{id}/preview:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/files/{id}/preview.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: version
+        in: query
+        name: version
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Preview Info
+      tags:
+      - Files and folders
+  /management/files/{id}/preview/content:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/files/{id}/preview/content.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: version
+        in: query
+        name: version
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Preview Content
+      tags:
+      - Files and folders
+  /management/files/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/files/{id}/versions.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Versions
+      tags:
+      - Files and folders
+  /management/files/{id}/versions/{version}/rescan:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/files/{id}/versions/{version}/rescan.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: version
+        in: path
+        name: version
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Rescan Version
+      tags:
+      - Files and folders
+  /management/files/{id}/versions/{version}/restore:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/files/{id}/versions/{version}/restore.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: version
+        in: path
+        name: version
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Restore Version
+      tags:
+      - Files and folders
+  /management/folders:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/folders.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create Folder
+      tags:
+      - Files and folders
+  /management/folders/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/folders/{id} and PUT /api/fileshare/v1/management/nodes/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Rename
+      tags:
+      - Files and folders
+  /management/folders/{id}/acl:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/folders/{id}/acl.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Files and folders
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/folders/{id}/acl.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Replace
+      tags:
+      - Files and folders
+  /management/folders/{id}/children:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/folders/{id}/children.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Children
+      tags:
+      - Files and folders
+  /management/folders/{id}/inheritance:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/folders/{id}/inheritance.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Set Inheritance
+      tags:
+      - Files and folders
+  /management/folders/roots:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/folders/roots.
+      parameters:
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Roots
+      tags:
+      - Files and folders
+  /management/folders/tree:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/folders/tree.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Folder Tree
+      tags:
+      - Files and folders
+  /management/nodes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/nodes/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Trash
+      tags:
+      - Files and folders
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/folders/{id} and PUT /api/fileshare/v1/management/nodes/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Rename
+      tags:
+      - Files and folders
+  /management/nodes/{id}/activity:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/nodes/{id}/activity.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Activity
+      tags:
+      - Collaboration
+  /management/nodes/{id}/comments:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/nodes/{id}/comments.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Comments
+      tags:
+      - Collaboration
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/nodes/{id}/comments.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create Comment
+      tags:
+      - Collaboration
+  /management/nodes/{id}/comments/{comment_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/nodes/{id}/comments/{comment_id}.
+      parameters:
+      - description: comment_id
+        in: path
+        name: comment_id
+        required: true
+        type: string
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete Comment
+      tags:
+      - Collaboration
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/nodes/{id}/comments/{comment_id}.
+      parameters:
+      - description: comment_id
+        in: path
+        name: comment_id
+        required: true
+        type: string
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update Comment
+      tags:
+      - Collaboration
+  /management/nodes/{id}/detail:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/nodes/{id}/detail.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Detail
+      tags:
+      - Files and folders
+  /management/nodes/{id}/favorite:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/nodes/{id}/favorite.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Set Favorite
+      tags:
+      - Files and folders
+  /management/nodes/{id}/mention-candidates:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/nodes/{id}/mention-candidates.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Mention Candidates
+      tags:
+      - Files and folders
+  /management/nodes/{id}/move:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/nodes/{id}/move.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Move
+      tags:
+      - Files and folders
+  /management/nodes/{id}/restore:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/nodes/{id}/restore.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Restore
+      tags:
+      - Files and folders
+  /management/nodes/batch/favorite:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/nodes/batch/favorite.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Batch Favorite
+      tags:
+      - Files and folders
+  /management/nodes/batch/move:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/nodes/batch/move.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Batch Move
+      tags:
+      - Files and folders
+  /management/nodes/batch/restore:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/nodes/batch/restore.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Batch Restore
+      tags:
+      - Files and folders
+  /management/nodes/batch/trash:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/nodes/batch/trash.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Batch Trash
+      tags:
+      - Files and folders
+  /management/notifications:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/notifications.
+      parameters:
+      - description: category
+        in: query
+        name: category
+        type: string
+      - description: unread_only
+        in: query
+        name: unread_only
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Notifications
+  /management/notifications/{id}/open:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/notifications/{id}/open.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Open
+      tags:
+      - Notifications
+  /management/notifications/{id}/read:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/notifications/{id}/read.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Mark Read
+      tags:
+      - Notifications
+  /management/notifications/preferences:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/notifications/preferences.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Preferences
+      tags:
+      - Notifications
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/notifications/preferences.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Save Preferences
+      tags:
+      - Notifications
+  /management/notifications/read-all:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/notifications/read-all.
+      parameters:
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Mark All Read
+      tags:
+      - Notifications
+  /management/notifications/unread-count:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/notifications/unread-count.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Unread Count
+      tags:
+      - Notifications
+  /management/permissions:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/permissions and
+        GET /api/fileshare/v1/management/permissions.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Permissions
+      tags:
+      - System management
+  /management/roles:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/roles.
+      parameters:
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Workspace roles
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/roles.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create
+      tags:
+      - Workspace roles
+  /management/roles/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/roles/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete
+      tags:
+      - Workspace roles
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/roles/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get
+      tags:
+      - Workspace roles
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/roles/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update
+      tags:
+      - Workspace roles
+  /management/roles/{id}/permissions:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/roles/{id}/permissions.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Replace Permissions
+      tags:
+      - Workspace roles
+  /management/search:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/search.
+      parameters:
+      - description: created_by
+        in: query
+        name: created_by
+        type: string
+      - description: created_from
+        in: query
+        name: created_from
+        type: string
+      - description: created_to
+        in: query
+        name: created_to
+        type: string
+      - description: extension
+        in: query
+        name: extension
+        type: string
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: max_size
+        in: query
+        name: max_size
+        type: string
+      - description: min_size
+        in: query
+        name: min_size
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      - description: sort
+        in: query
+        name: sort
+        type: string
+      - description: type
+        in: query
+        name: type
+        type: string
+      - description: updated_by
+        in: query
+        name: updated_by
+        type: string
+      - description: updated_from
+        in: query
+        name: updated_from
+        type: string
+      - description: updated_to
+        in: query
+        name: updated_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Search
+      tags:
+      - Files and folders
+  /management/shares:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/shares.
+      parameters:
+      - description: creator
+        in: query
+        name: creator
+        type: string
+      - description: expires_from
+        in: query
+        name: expires_from
+        type: string
+      - description: expires_to
+        in: query
+        name: expires_to
+        type: string
+      - description: name
+        in: query
+        name: name
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      - description: scope
+        in: query
+        name: scope
+        type: string
+      - description: status
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - Sharing
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/shares.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create
+      tags:
+      - Sharing
+  /management/shares/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/shares/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Detail
+      tags:
+      - Sharing
+  /management/shares/{id}/revoke:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/shares/{id}/revoke.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Revoke
+      tags:
+      - Sharing
+  /management/storage/reconcile:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/storage/reconcile.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Scan
+      tags:
+      - Storage governance
+  /management/storage/reconcile/quarantine:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/storage/reconcile/quarantine.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Quarantine
+      tags:
+      - Storage governance
+  /management/system/clamav/health:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/clamav/health.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Clam A V Health
+      tags:
+      - System management
+  /management/system/configs:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/configs.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Config
+      tags:
+      - System management
+  /management/system/ldap:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/ldap.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get L D A P
+      tags:
+      - System management
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/system/ldap.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Save L D A P
+      tags:
+      - System management
+  /management/system/ldap/history:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/ldap/history.
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: L D A P Sync History
+      tags:
+      - System management
+  /management/system/ldap/sync:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/system/ldap/sync.
+      parameters:
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: L D A P Manual Sync
+      tags:
+      - System management
+  /management/system/ldap/test:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/system/ldap/test.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: L D A P Test
+      tags:
+      - System management
+  /management/system/menus:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/menus.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List
+      tags:
+      - System management
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/system/menus.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create
+      tags:
+      - System management
+  /management/system/menus/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/system/menus/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete
+      tags:
+      - System management
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/menus/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get
+      tags:
+      - System management
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/system/menus/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update
+      tags:
+      - System management
+  /management/system/notifications:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/notifications.
+      parameters:
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Channels
+      tags:
+      - Notifications
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/system/notifications.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create Channel
+      tags:
+      - Notifications
+  /management/system/notifications/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/system/notifications/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete Channel
+      tags:
+      - Notifications
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/system/notifications/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update Channel
+      tags:
+      - Notifications
+  /management/system/notifications/{id}/test:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/system/notifications/{id}/test.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Test Channel
+      tags:
+      - Notifications
+  /management/system/notifications/outbox:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/notifications/outbox.
+      parameters:
+      - description: status
+        in: query
+        name: status
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Outbox
+      tags:
+      - Notifications
+  /management/system/notifications/outbox/{id}/retry:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/system/notifications/outbox/{id}/retry.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Retry Outbox
+      tags:
+      - Notifications
+  /management/system/permissions:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/permissions and
+        GET /api/fileshare/v1/management/permissions.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Permissions
+      tags:
+      - System management
+  /management/system/storage/health:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/storage/health.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Storage Health
+      tags:
+      - System management
+  /management/system/users:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/users.
+      parameters:
+      - description: username
+        in: query
+        name: username
+        type: string
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Users
+      tags:
+      - User management
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/system/users.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create User
+      tags:
+      - User management
+  /management/system/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/system/users/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete User
+      tags:
+      - User management
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/system/users/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get User
+      tags:
+      - User management
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/system/users/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update User
+      tags:
+      - User management
+  /management/system/users/{id}/password:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/system/users/{id}/password.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Reset User Password
+      tags:
+      - User management
+  /management/system/users/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/system/users/{id}/status.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update User Status
+      tags:
+      - User management
+  /management/trash:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/trash.
+      parameters:
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Trash
+      tags:
+      - Files and folders
+  /management/uploads/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/uploads/{id}.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Cancel
+      tags:
+      - Uploads
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/uploads/{id} and GET /api/fileshare/v1/management/uploads/{id}/status.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Status
+      tags:
+      - Uploads
+  /management/uploads/{id}/complete:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/uploads/{id}/complete.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Complete
+      tags:
+      - Uploads
+  /management/uploads/{id}/parts/{part_no}:
+    put:
+      consumes:
+      - application/octet-stream
+      description: Handles PUT /api/fileshare/v1/management/uploads/{id}/parts/{part_no}.
+      parameters:
+      - description: Binary request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: string
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: part_no
+        in: path
+        name: part_no
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Part
+      tags:
+      - Uploads
+  /management/uploads/{id}/status:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/uploads/{id} and GET /api/fileshare/v1/management/uploads/{id}/status.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Status
+      tags:
+      - Uploads
+  /management/uploads/init:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/uploads/init.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Init
+      tags:
+      - Uploads
+  /management/users/{id}/roles:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/users/{id}/roles.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Assign User Roles
+      tags:
+      - Workspace roles
+  /management/users/batch/roles:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/users/batch/roles.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Batch Assign User Roles
+      tags:
+      - Workspace roles
+  /management/workspaces:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/workspaces.
+      parameters:
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Workspaces
+      tags:
+      - Workspaces
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/workspaces.
+      parameters:
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create Workspace
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/workspaces/{wid}.
+      parameters:
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update Quota
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}/available-users:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/workspaces/{wid}/available-users.
+      parameters:
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Available Users
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}/groups:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/workspaces/{wid}/groups.
+      parameters:
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Groups
+      tags:
+      - Workspaces
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/workspaces/{wid}/groups.
+      parameters:
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create Group
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}/groups/{gid}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}.
+      parameters:
+      - description: gid
+        in: path
+        name: gid
+        required: true
+        type: string
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete Group
+      tags:
+      - Workspaces
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}.
+      parameters:
+      - description: gid
+        in: path
+        name: gid
+        required: true
+        type: string
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update Group
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}/groups/{gid}/members:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}/members.
+      parameters:
+      - description: gid
+        in: path
+        name: gid
+        required: true
+        type: string
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Members
+      tags:
+      - Workspaces
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}/members.
+      parameters:
+      - description: gid
+        in: path
+        name: gid
+        required: true
+        type: string
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Add Member To Group
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}/groups/{gid}/members/{uid}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/workspaces/{wid}/groups/{gid}/members/{uid}.
+      parameters:
+      - description: gid
+        in: path
+        name: gid
+        required: true
+        type: string
+      - description: uid
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Remove Member
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}/groups/directory:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/workspaces/{wid}/groups/directory.
+      parameters:
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Directory
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}/members:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/management/workspaces/{wid}/members.
+      parameters:
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: keyword
+        in: query
+        name: keyword
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: List Members
+      tags:
+      - Workspaces
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/management/workspaces/{wid}/members.
+      parameters:
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Add Member
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}/members/{uid}:
+    delete:
+      consumes:
+      - application/json
+      description: Handles DELETE /api/fileshare/v1/management/workspaces/{wid}/members/{uid}.
+      parameters:
+      - description: uid
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Remove Member
+      tags:
+      - Workspaces
+  /management/workspaces/{wid}/members/{uid}/quota:
+    put:
+      consumes:
+      - application/json
+      description: Handles PUT /api/fileshare/v1/management/workspaces/{wid}/members/{uid}/quota.
+      parameters:
+      - description: uid
+        in: path
+        name: uid
+        required: true
+        type: string
+      - description: wid
+        in: path
+        name: wid
+        required: true
+        type: string
+      - description: Set to XMLHttpRequest when using the session cookie
+        in: header
+        name: X-Requested-With
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update Member Quota
+      tags:
+      - Workspaces
+  /share/{token}:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/share/{token}.
+      parameters:
+      - description: token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Public Info
+      tags:
+      - Public shares
+  /share/{token}/download:
+    get:
+      consumes:
+      - application/json
+      description: Handles GET /api/fileshare/v1/share/{token}/download.
+      parameters:
+      - description: token
+        in: path
+        name: token
+        required: true
+        type: string
+      - description: item
+        in: query
+        name: item
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Download
+      tags:
+      - Public shares
+  /share/{token}/verify:
+    post:
+      consumes:
+      - application/json
+      description: Handles POST /api/fileshare/v1/share/{token}/verify.
+      parameters:
+      - description: token
+        in: path
+        name: token
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Verify
+      tags:
+      - Public shares
+securityDefinitions:
+  BearerAuth:
+    description: Enter "Bearer {token}". Browser sessions may also use the HttpOnly
+      fileshare_session cookie.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

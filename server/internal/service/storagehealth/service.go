@@ -137,10 +137,17 @@ func inspectPath(name, rawPath string, minFreeBytes int64, warnFreePercent, minF
 	if result.TotalBytes > 0 {
 		result.FreePercent = float64(result.FreeBytes) * 100 / float64(result.TotalBytes)
 	}
-	result.CriticalSpace = (minFreeBytes > 0 && result.FreeBytes < uint64(minFreeBytes)) ||
-		(minFreePercent > 0 && result.FreePercent < float64(minFreePercent))
-	result.LowSpace = result.CriticalSpace || (warnFreePercent > 0 && result.FreePercent < float64(warnFreePercent))
+	result.CriticalSpace, result.LowSpace = capacityState(
+		result.FreeBytes, result.FreePercent, minFreeBytes, warnFreePercent, minFreePercent,
+	)
 	return result
+}
+
+func capacityState(freeBytes uint64, freePercent float64, minFreeBytes int64, warnFreePercent, minFreePercent int) (critical, low bool) {
+	critical = (minFreeBytes > 0 && freeBytes < uint64(minFreeBytes)) ||
+		(minFreePercent > 0 && freePercent < float64(minFreePercent))
+	low = critical || (warnFreePercent > 0 && freePercent < float64(warnFreePercent))
+	return critical, low
 }
 
 func firstError(errors ...error) string {
