@@ -210,6 +210,9 @@ func ensureBootstrapAdmin() error {
 	if password == "" {
 		return errors.New("no active super administrator exists; set FILESHARE_BOOTSTRAP_ADMIN_PASSWORD for the first start")
 	}
+	if config.IsPlaceholderSecret(password) {
+		return errors.New("bootstrap password must not use a known placeholder")
+	}
 	if err := security.ValidatePassword(password); err != nil {
 		return fmt.Errorf("bootstrap password: %w", err)
 	}

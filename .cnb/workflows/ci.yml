@@ -1,6 +1,13 @@
 main:
   push:
     - name: ci
+      ifModify:
+        - "**"
+        - "!(.github/**)"
+        - "!(.cnb/**)"
+        - "!(.cnb.yml)"
+        - "!(.goreleaser.yaml)"
+        - "!(push.sh)"
       runner:
         cpus: 4
       stages:
@@ -24,6 +31,13 @@ main:
 
   pull_request:
     - name: pr-check
+      ifModify:
+        - "**"
+        - "!(.github/**)"
+        - "!(.cnb/**)"
+        - "!(.cnb.yml)"
+        - "!(.goreleaser.yaml)"
+        - "!(push.sh)"
       runner:
         cpus: 4
       stages:

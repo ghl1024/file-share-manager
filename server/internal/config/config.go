@@ -6,7 +6,7 @@
 - CNB: https://cnb.cool/ghl1024/file-share-manager
 - GitCode: https://gitcode.com/haydenguo/file-share-manager
 - Author: https://hayden.pub
- */
+*/
 
 package config
 
@@ -865,10 +865,10 @@ func validate(cfg *Config) error {
 		if cfg.Database.AutoMigrate {
 			return fmt.Errorf("release mode requires database.auto_migrate=false")
 		}
-		if len(cfg.JWT.Secret) < 32 || cfg.JWT.Secret == "super-secret-key-change-in-prod" {
+		if len(cfg.JWT.Secret) < 32 || IsPlaceholderSecret(cfg.JWT.Secret) {
 			return fmt.Errorf("release mode requires a non-default JWT secret of at least 32 characters")
 		}
-		if cfg.Database.Password == "" {
+		if cfg.Database.Password == "" || IsPlaceholderSecret(cfg.Database.Password) {
 			return fmt.Errorf("release mode requires an externally supplied database password")
 		}
 		if !filepath.IsAbs(cfg.Storage.RootPath) || !filepath.IsAbs(cfg.Storage.StagingPath) {
@@ -876,11 +876,37 @@ func validate(cfg *Config) error {
 		}
 		backupConfigured := (strings.EqualFold(cfg.Backup.Type, "local") && strings.TrimSpace(cfg.Backup.LocalPath) != "") ||
 			(!strings.EqualFold(cfg.Backup.Type, "local") && strings.TrimSpace(cfg.Backup.Endpoint) != "" && strings.TrimSpace(cfg.Backup.Bucket) != "")
-		if backupConfigured && strings.TrimSpace(cfg.Backup.ManifestEncryptionKey) == "" {
+		if backupConfigured && (strings.TrimSpace(cfg.Backup.ManifestEncryptionKey) == "" || IsPlaceholderSecret(cfg.Backup.ManifestEncryptionKey)) {
 			return fmt.Errorf("release mode requires FILESHARE_BACKUP_MANIFEST_KEY when backup storage is configured")
 		}
 	}
 	return nil
+}
+
+// IsPlaceholderSecret identifies repository examples and common deployment
+// placeholders that must never be accepted as production credentials.
+func IsPlaceholderSecret(value string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	if normalized == "" {
+		return true
+	}
+	for _, marker := range []string{
+		"change-me", "change_me", "change-this", "change_this",
+		"change-in-prod",
+		"replace-with", "replace_with", "replace me", "replace_me",
+		"your-secret", "your_secret", "your-password", "your_password",
+		"example-secret", "example_secret", "default-secret", "default_secret",
+	} {
+		if strings.Contains(normalized, marker) {
+			return true
+		}
+	}
+	switch normalized {
+	case "fileshare123", "fileshare_root", "admin123456789!":
+		return true
+	default:
+		return false
+	}
 }
 
 func randomSecret(length int) (string, error) {

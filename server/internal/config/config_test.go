@@ -6,7 +6,7 @@
 - CNB: https://cnb.cool/ghl1024/file-share-manager
 - GitCode: https://gitcode.com/haydenguo/file-share-manager
 - Author: https://hayden.pub
- */
+*/
 
 package config
 
@@ -368,6 +368,53 @@ secret = "super-secret-key-change-in-prod"
 	err := LoadConfig(path)
 	if err == nil || !strings.Contains(err.Error(), "JWT secret") {
 		t.Fatalf("LoadConfig() error = %v, want JWT secret validation error", err)
+	}
+}
+
+func TestLoadConfigRejectsReleasePlaceholderDatabasePassword(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	content := `[server]
+port = 29000
+mode = "release"
+web_url = "https://fileshare.example.com"
+
+[database]
+host = "db"
+port = 3306
+user = "fileshare"
+password = "change-this-db-password"
+dbname = "fileshare"
+auto_migrate = false
+
+[storage]
+root_path = "/data/fileshare"
+staging_path = "/data/fileshare/staging"
+
+[jwt]
+secret = "a-production-secret-that-is-long-enough-123456"
+`
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := LoadConfig(path); err == nil || !strings.Contains(err.Error(), "database password") {
+		t.Fatalf("LoadConfig() error = %v, want database password validation error", err)
+	}
+}
+
+func TestIsPlaceholderSecret(t *testing.T) {
+	for _, value := range []string{
+		"change-this-db-password", "replace-with-a-long-random-secret",
+		"super-secret-key-change-in-prod", "Admin123456789!", "fileshare123", "fileshare_root",
+	} {
+		if !IsPlaceholderSecret(value) {
+			t.Errorf("IsPlaceholderSecret(%q) = false, want true", value)
+		}
+	}
+	for _, value := range []string{"a-production-secret-that-is-long-enough-123456", "db-password-with-random-suffix-9f4b2c"} {
+		if IsPlaceholderSecret(value) {
+			t.Errorf("IsPlaceholderSecret(%q) = true, want false", value)
+		}
 	}
 }
 

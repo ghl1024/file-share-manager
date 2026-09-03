@@ -265,15 +265,19 @@ FILESHARE_BOOTSTRAP_ADMIN_PASSWORD='Admin123456789!' ./bin/fileshare-server --en
 git clone https://github.com/ghl1024/file-share-manager.git
 cd file-share-manager
 
-export MYSQL_ROOT_PASSWORD='Replace-With-A-Strong-Root-Password!'
-export FILESHARE_DB_PASSWORD='Replace-With-A-Strong-Database-Password!'
+export MYSQL_ROOT_PASSWORD="$(openssl rand -base64 32)"
+export FILESHARE_DB_PASSWORD="$(openssl rand -base64 32)"
 export FILESHARE_JWT_SECRET="$(openssl rand -base64 48)"
 export FILESHARE_BACKUP_MANIFEST_KEY="$(openssl rand -base64 32)"
-export FILESHARE_BOOTSTRAP_ADMIN_PASSWORD='Admin123456789!'
+export FILESHARE_BOOTSTRAP_ADMIN_PASSWORD="$(openssl rand -base64 24)"
 
 make compose-up
 docker compose ps
 ```
+
+Compose 不会为生产数据库密码、JWT Secret、MySQL root 密码或备份清单密钥提供默认值；缺少任一变量时会在服务启动前直接失败。首次管理员创建完成后，后续启动可以不再设置 `FILESHARE_BOOTSTRAP_ADMIN_PASSWORD`。
+
+GitHub 和 CNB 的普通 `push` / `pull_request` 检查，以及普通分支触发的 Docker 构建，在提交只包含 `.github/`、`.cnb/`、`.cnb.yml`、`.goreleaser.yaml` 或 `push.sh` 的改动时会自动跳过；只要同时包含业务代码改动，检查仍会正常触发。
 
 Compose 会先等待 MySQL 就绪，再以一次性 `fileshare-migrate` 容器执行版本化 migration；迁移成功后启动 `fileshare-server`，前端 `fileshare-web` 等待后端 `/readyz` 通过后提供服务。
 

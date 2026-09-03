@@ -2,7 +2,19 @@ name: CI
 
 on:
   push:
+    paths-ignore:
+      - '.github/**'
+      - '.cnb/**'
+      - '.cnb.yml'
+      - '.goreleaser.yaml'
+      - 'push.sh'
   pull_request:
+    paths-ignore:
+      - '.github/**'
+      - '.cnb/**'
+      - '.cnb.yml'
+      - '.goreleaser.yaml'
+      - 'push.sh'
 
 permissions:
   contents: read

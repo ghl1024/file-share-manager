@@ -1,6 +1,13 @@
 main:
   push:
     - name: build-amd64-images
+      ifModify:
+        - "**"
+        - "!(.github/**)"
+        - "!(.cnb/**)"
+        - "!(.cnb.yml)"
+        - "!(.goreleaser.yaml)"
+        - "!(push.sh)"
       services:
         - docker
       env:
@@ -39,6 +46,13 @@ main:
             key: fileshare-images-amd64
 
     - name: build-arm64-images
+      ifModify:
+        - "**"
+        - "!(.github/**)"
+        - "!(.cnb/**)"
+        - "!(.cnb.yml)"
+        - "!(.goreleaser.yaml)"
+        - "!(push.sh)"
       services:
         - docker
       env:
@@ -77,6 +91,13 @@ main:
             key: fileshare-images-arm64
 
     - name: publish-multiarch-images
+      ifModify:
+        - "**"
+        - "!(.github/**)"
+        - "!(.cnb/**)"
+        - "!(.cnb.yml)"
+        - "!(.goreleaser.yaml)"
+        - "!(push.sh)"
       services:
         - docker
       env:

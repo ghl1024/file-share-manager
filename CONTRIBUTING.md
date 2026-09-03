@@ -36,6 +36,8 @@ npm run build:prod
 
 修改 API 路由、请求参数或响应结构时，必须同步更新 Handler 的 Swagger 注释，运行 `make swag`，并提交 `server/docs` 下的三个生成文件。路由测试会校验每个 `/api/fileshare/v1` operation 都存在于生成文档中。
 
+仅修改 `.github/`、`.cnb/`、`.cnb.yml`、`.goreleaser.yaml` 或 `push.sh` 时，GitHub/CNB 的 `push`、`pull_request` 检查和普通 Docker 构建会按路径过滤跳过；若同时修改业务代码，检查仍会触发。
+
 涉及数据库模型时，必须同时提供可审阅的增量迁移，并更新迁移相关文档。不要修改已发布迁移的内容。
 
 ## 分支与提交

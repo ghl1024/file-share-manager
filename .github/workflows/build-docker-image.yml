@@ -6,6 +6,12 @@ on:
       - main
     tags:
       - 'v*'
+    paths-ignore:
+      - '.github/**'
+      - '.cnb/**'
+      - '.cnb.yml'
+      - '.goreleaser.yaml'
+      - 'push.sh'
   workflow_dispatch:
 
 permissions:
