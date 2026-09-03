@@ -3,6 +3,8 @@
   port = 29000
   mode = "debug"
   web_url = "http://localhost:39000"
+  # 留空表示不信任任何代理转发头。通过反向代理部署时，使用FILESHARE_TRUSTED_PROXIES 配置精确的代理 IP 或 CIDR。
+  trusted_proxies = []
   read_header_timeout_seconds = 5
   read_timeout_seconds = 30
   write_timeout_seconds = 60
@@ -21,12 +23,10 @@
   max_idle_conns = 10
   max_open_conns = 100
   auto_migrate = true
-  # Enable only for short-lived SQL diagnosis; errors and queries slower than
-  # 200ms are always recorded.
+  # 仅用于短时间 SQL 诊断；错误查询和耗时超过 200ms 的查询始终会记录。
   log_queries = false
 
-# Required only when audit.archive_enabled=true. The archive worker account
-# must be different from the business account and is never used for migration.
+# 仅在 audit.archive_enabled=true 时需要配置。归档 Worker 账号必须与业务账号不同，并且绝不能用于数据库迁移。
 [audit_database]
   host = "127.0.0.1"
   port = 3306
@@ -60,7 +60,7 @@
   worker_count = 2
 
 [jwt]
-  # Development only. Override with FILESHARE_JWT_SECRET for stable sessions.
+  # 仅供开发环境使用。如需稳定会话，请通过 FILESHARE_JWT_SECRET 覆盖。
   secret = "fileshare-development-jwt-secret-change-me"
   expires_hours = 24
 
@@ -68,10 +68,9 @@
 type = "local"
 local_path = "data/backup"
 prefix = "fileshare-backup/"
-# Development only. Production must inject FILESHARE_BACKUP_MANIFEST_KEY.
+# 仅供开发环境使用。生产环境必须通过 FILESHARE_BACKUP_MANIFEST_KEY 注入密钥。
 manifest_encryption_key = "LpyeDOEk3xNcJoebADaHxHtfpCImwDuXwzoJoBoFB0M="
-# Periodically replace long incremental chains with an independently verified
-# full baseline. Keep disabled until the deployment backup window is chosen.
+# 定期将过长的增量链替换为独立校验的完整基线。在确定部署备份窗口前保持关闭。
 compaction_enabled = false
 compaction_interval_minutes = 60
 compaction_incremental_threshold = 30

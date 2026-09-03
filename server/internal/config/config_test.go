@@ -13,6 +13,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -367,6 +368,61 @@ secret = "super-secret-key-change-in-prod"
 	err := LoadConfig(path)
 	if err == nil || !strings.Contains(err.Error(), "JWT secret") {
 		t.Fatalf("LoadConfig() error = %v, want JWT secret validation error", err)
+	}
+}
+
+func TestLoadConfigNormalizesTrustedProxies(t *testing.T) {
+	t.Setenv("FILESHARE_TRUSTED_PROXIES", "")
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	content := `[server]
+port = 29000
+mode = "debug"
+web_url = "http://localhost:39000"
+trusted_proxies = [" 10.0.0.0/8 ", "10.0.0.0/8", "192.0.2.10"]
+
+[database]
+host = "127.0.0.1"
+port = 3306
+user = "fileshare"
+password = "fileshare123"
+dbname = "fileshare"
+`
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := LoadConfig(path); err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+	got := GetConfig().Server.TrustedProxies
+	want := []string{"10.0.0.0/8", "192.0.2.10"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("TrustedProxies = %#v, want %#v", got, want)
+	}
+}
+
+func TestLoadConfigRejectsInvalidTrustedProxy(t *testing.T) {
+	t.Setenv("FILESHARE_TRUSTED_PROXIES", "")
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	content := `[server]
+port = 29000
+mode = "debug"
+web_url = "http://localhost:39000"
+trusted_proxies = ["not-an-ip"]
+
+[database]
+host = "127.0.0.1"
+port = 3306
+user = "fileshare"
+password = "fileshare123"
+dbname = "fileshare"
+`
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := LoadConfig(path); err == nil || !strings.Contains(err.Error(), "trusted_proxies") {
+		t.Fatalf("LoadConfig() error = %v, want trusted proxy validation error", err)
 	}
 }
 

@@ -44,6 +44,37 @@ func TestSessionUserIsCurrent(t *testing.T) {
 	}
 }
 
+func TestClientIPUsesOnlyConfiguredTrustedProxies(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	tests := []struct {
+		name       string
+		trusted    []string
+		remoteAddr string
+		forwarded  string
+		want       string
+	}{
+		{name: "untrusted proxy header is ignored", trusted: []string{"10.0.0.0/8"}, remoteAddr: "192.0.2.10:1234", forwarded: "203.0.113.7", want: "192.0.2.10"},
+		{name: "trusted proxy header is accepted", trusted: []string{"10.0.0.0/8"}, remoteAddr: "10.0.0.8:1234", forwarded: "203.0.113.7", want: "203.0.113.7"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			engine := gin.New()
+			if err := engine.SetTrustedProxies(test.trusted); err != nil {
+				t.Fatal(err)
+			}
+			engine.GET("/ip", func(c *gin.Context) { c.String(http.StatusOK, c.ClientIP()) })
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, "/ip", nil)
+			request.RemoteAddr = test.remoteAddr
+			request.Header.Set("X-Forwarded-For", test.forwarded)
+			engine.ServeHTTP(recorder, request)
+			if got := recorder.Body.String(); got != test.want {
+				t.Fatalf("ClientIP() = %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
 func TestSecurityHeadersMiddlewareAllowsSwaggerAssetsOnlyOnSwaggerPath(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	engine := gin.New()

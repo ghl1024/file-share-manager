@@ -115,6 +115,9 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	engine := gin.New()
+	if err := engine.SetTrustedProxies(cfg.Server.TrustedProxies); err != nil {
+		logger.Fatalf("configure trusted proxies: %v", err)
+	}
 	engine.Use(middleware.GlobalRequestSizeLimitMiddleware(cfg.Server.MaxRequestBodyBytes, cfg.Server.MaxUploadBodyBytes))
 	engine.Use(middleware.LoggerMiddleware())
 	engine.Use(middleware.RecoveryMiddleware())

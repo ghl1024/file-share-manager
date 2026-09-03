@@ -3,6 +3,8 @@
   port = 29000
   mode = "release"
   web_url = "https://fileshare.example.com"
+  # 除非明确信任反向代理网络，否则保持为空。可通过 FILESHARE_TRUSTED_PROXIES 以逗号分隔的 IP/CIDR 列表覆盖。
+  trusted_proxies = []
   read_header_timeout_seconds = 5
   read_timeout_seconds = 30
   write_timeout_seconds = 60
@@ -63,9 +65,9 @@
 type = "local"
 local_path = "/data/fileshare/backup"
 prefix = "fileshare-backup/"
-# Inject FILESHARE_BACKUP_MANIFEST_KEY; never commit a production key.
+# 通过 FILESHARE_BACKUP_MANIFEST_KEY 注入；绝不能提交生产密钥。
 manifest_encryption_key = ""
-# Enable only after sizing the backup I/O window for the deployment.
+# 只有评估部署的备份 I/O 窗口后才能启用。
 compaction_enabled = false
 compaction_interval_minutes = 60
 compaction_incremental_threshold = 30
@@ -94,7 +96,7 @@ retry_interval_minutes = 5
 retry_batch_size = 50
 
 [notification]
-# Inject FILESHARE_NOTIFICATION_CREDENTIAL_KEY as base64-encoded 32 bytes.
+# 通过 FILESHARE_NOTIFICATION_CREDENTIAL_KEY 注入 Base64 编码的 32 字节密钥。
 credential_encryption_key = ""
 worker_count = 2
 poll_interval_seconds = 5

@@ -387,6 +387,7 @@ make frontend-build
 - API 前缀为 `/api/fileshare/v1/`。
 - 会话使用 `fileshare_session` HttpOnly Cookie，前端不读取或持久化 JWT。
 - Cookie 写请求必须带 `X-Requested-With: XMLHttpRequest`。
+- Gin 默认不信任任何代理转发头；部署在反向代理后时，通过 `FILESHARE_TRUSTED_PROXIES` 注入精确的代理 IP/CIDR，多个值以逗号分隔。不要配置为任意地址段。
 - JWT Secret 至少使用 32 字节随机值，示例：`openssl rand -base64 48`。
 - 生产配置关闭 `database.auto_migrate`，必须使用独立 migration 流程。
 

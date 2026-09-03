@@ -14,6 +14,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -42,18 +43,19 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Host                     string `toml:"host"`
-	Port                     int    `toml:"port"`
-	Mode                     string `toml:"mode"`
-	WebURL                   string `toml:"web_url"`
-	ReadHeaderTimeoutSeconds int    `toml:"read_header_timeout_seconds"`
-	ReadTimeoutSeconds       int    `toml:"read_timeout_seconds"`
-	WriteTimeoutSeconds      int    `toml:"write_timeout_seconds"`
-	IdleTimeoutSeconds       int    `toml:"idle_timeout_seconds"`
-	ShutdownTimeoutSeconds   int    `toml:"shutdown_timeout_seconds"`
-	MaxRequestBodyBytes      int64  `toml:"max_request_body_bytes"`
-	MaxUploadBodyBytes       int64  `toml:"max_upload_body_bytes"`
-	EnableSwagger            bool   `toml:"enable_swagger"`
+	Host                     string   `toml:"host"`
+	Port                     int      `toml:"port"`
+	Mode                     string   `toml:"mode"`
+	WebURL                   string   `toml:"web_url"`
+	TrustedProxies           []string `toml:"trusted_proxies"`
+	ReadHeaderTimeoutSeconds int      `toml:"read_header_timeout_seconds"`
+	ReadTimeoutSeconds       int      `toml:"read_timeout_seconds"`
+	WriteTimeoutSeconds      int      `toml:"write_timeout_seconds"`
+	IdleTimeoutSeconds       int      `toml:"idle_timeout_seconds"`
+	ShutdownTimeoutSeconds   int      `toml:"shutdown_timeout_seconds"`
+	MaxRequestBodyBytes      int64    `toml:"max_request_body_bytes"`
+	MaxUploadBodyBytes       int64    `toml:"max_upload_body_bytes"`
+	EnableSwagger            bool     `toml:"enable_swagger"`
 }
 
 type DatabaseConfig struct {
@@ -480,6 +482,9 @@ func applyEnv(cfg *Config) error {
 	setString("FILESHARE_AUDIT_DB_NAME", &cfg.AuditDatabase.DBName)
 	setString("FILESHARE_JWT_SECRET", &cfg.JWT.Secret)
 	setString("FILESHARE_WEB_URL", &cfg.Server.WebURL)
+	if value := strings.TrimSpace(os.Getenv("FILESHARE_TRUSTED_PROXIES")); value != "" {
+		cfg.Server.TrustedProxies = strings.Split(value, ",")
+	}
 	if value := strings.TrimSpace(os.Getenv("FILESHARE_ENABLE_SWAGGER")); value != "" {
 		parsed, err := strconv.ParseBool(value)
 		if err != nil {
@@ -637,6 +642,25 @@ func validate(cfg *Config) error {
 	if cfg.Server.WebURL == "" || err != nil || webURL.Scheme == "" || webURL.Host == "" {
 		return fmt.Errorf("server.web_url must be an absolute URL")
 	}
+	trustedProxies := make([]string, 0, len(cfg.Server.TrustedProxies))
+	seenTrustedProxies := make(map[string]struct{}, len(cfg.Server.TrustedProxies))
+	for _, raw := range cfg.Server.TrustedProxies {
+		proxy := strings.TrimSpace(raw)
+		if proxy == "" {
+			continue
+		}
+		if net.ParseIP(proxy) == nil {
+			if _, _, err := net.ParseCIDR(proxy); err != nil {
+				return fmt.Errorf("server.trusted_proxies contains invalid IP or CIDR %q", raw)
+			}
+		}
+		if _, exists := seenTrustedProxies[proxy]; exists {
+			continue
+		}
+		seenTrustedProxies[proxy] = struct{}{}
+		trustedProxies = append(trustedProxies, proxy)
+	}
+	cfg.Server.TrustedProxies = trustedProxies
 	if cfg.Database.Host == "" || cfg.Database.User == "" || cfg.Database.DBName == "" || cfg.Database.Port < 1 || cfg.Database.Port > 65535 {
 		return fmt.Errorf("database host, port, user and dbname are required")
 	}
