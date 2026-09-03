@@ -6,7 +6,7 @@
 - CNB: https://cnb.cool/ghl1024/file-share-manager
 - GitCode: https://gitcode.com/haydenguo/file-share-manager
 - Author: https://hayden.pub
- */
+*/
 
 package dao
 
@@ -187,6 +187,13 @@ func (dao *WorkspaceDAO) UpsertMemberWithAudit(membership *model.WorkspaceMember
 		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			Where("workspace_id = ? AND user_id = ?", membership.WorkspaceID, membership.UserID).First(&existing).Error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			removed, cleanupErr := revokeMemberAuthorizations(tx, membership.WorkspaceID, membership.UserID)
+			if cleanupErr != nil {
+				return cleanupErr
+			}
+			if err := appendRemovedMemberAuthorizationChanges(tx, membership.WorkspaceID, membership.UserID, removed); err != nil {
+				return err
+			}
 			if err := tx.Create(membership).Error; err != nil {
 				return err
 			}
@@ -205,7 +212,11 @@ func (dao *WorkspaceDAO) UpsertMemberWithAudit(membership *model.WorkspaceMember
 				return err
 			}
 			prepareWorkspaceMemberAuditEvent(event, *membership, user.Username)
-			return appendAuditEvent(tx, event, nil, workspaceMembershipAuditSnapshot(*membership))
+			after := workspaceMembershipAuditSnapshot(*membership)
+			after["removed_role_ids"] = removed.RoleIDs
+			after["removed_group_ids"] = removed.GroupIDs
+			after["removed_acl_node_ids"] = removed.ACLNodeIDs
+			return appendAuditEvent(tx, event, nil, after)
 		}
 		if err != nil {
 			return err
@@ -274,6 +285,13 @@ func (dao *WorkspaceDAO) EnsureMember(workspaceID, userID, actorID uint) error {
 			Role:        "member",
 			QuotaBytes:  nil,
 			CreatedBy:   actorID,
+		}
+		removed, err := revokeMemberAuthorizations(tx, workspaceID, userID)
+		if err != nil {
+			return err
+		}
+		if err := appendRemovedMemberAuthorizationChanges(tx, workspaceID, userID, removed); err != nil {
+			return err
 		}
 		if err := tx.Create(membership).Error; err != nil {
 			return err
@@ -440,6 +458,73 @@ func (dao *WorkspaceDAO) RemoveMember(workspaceID, userID uint) error {
 	return dao.RemoveMemberWithAudit(workspaceID, userID, nil)
 }
 
+type removedMemberAuthorizations struct {
+	RoleIDs    []uint
+	GroupIDs   []uint
+	ACLNodeIDs []uint
+}
+
+// revokeMemberAuthorizations removes only authorization records owned by the
+// target workspace. Group ACL entries themselves remain available to the
+// group, but the removed user is no longer a group member and therefore cannot
+// inherit them after a later rejoin.
+func revokeMemberAuthorizations(tx *gorm.DB, workspaceID, userID uint) (removedMemberAuthorizations, error) {
+	removed := removedMemberAuthorizations{}
+	if err := tx.Model(&model.UserRole{}).
+		Where("workspace_id = ? AND user_id = ?", workspaceID, userID).
+		Order("role_id ASC").Pluck("role_id", &removed.RoleIDs).Error; err != nil {
+		return removed, err
+	}
+	if err := tx.Table("user_group_members AS ugm").
+		Joins("JOIN user_groups AS ug ON ug.id = ugm.group_id").
+		Where("ug.workspace_id = ? AND ugm.user_id = ?", workspaceID, userID).
+		Order("ugm.group_id ASC").Pluck("ugm.group_id", &removed.GroupIDs).Error; err != nil {
+		return removed, err
+	}
+	if err := tx.Model(&model.NodeACL{}).
+		Where("workspace_id = ? AND subject_type = ? AND subject_id = ?", workspaceID, "user", userID).
+		Order("node_id ASC, id ASC").Pluck("node_id", &removed.ACLNodeIDs).Error; err != nil {
+		return removed, err
+	}
+
+	if len(removed.GroupIDs) > 0 {
+		if err := tx.Where("group_id IN ? AND user_id = ?", removed.GroupIDs, userID).
+			Delete(&model.UserGroupMember{}).Error; err != nil {
+			return removed, err
+		}
+	}
+	if len(removed.ACLNodeIDs) > 0 {
+		if err := tx.Where("workspace_id = ? AND subject_type = ? AND subject_id = ?", workspaceID, "user", userID).
+			Delete(&model.NodeACL{}).Error; err != nil {
+			return removed, err
+		}
+	}
+	if err := tx.Where("workspace_id = ? AND user_id = ?", workspaceID, userID).
+		Delete(&model.UserRole{}).Error; err != nil {
+		return removed, err
+	}
+	return removed, nil
+}
+
+func appendRemovedMemberAuthorizationChanges(tx *gorm.DB, workspaceID, userID uint, removed removedMemberAuthorizations) error {
+	if len(removed.RoleIDs) > 0 {
+		if err := appendChange(tx, workspaceID, "user_role", userID, "replace", map[string]any{"role_ids": []uint{}, "removed_role_ids": removed.RoleIDs}); err != nil {
+			return err
+		}
+	}
+	for _, groupID := range removed.GroupIDs {
+		if err := appendChange(tx, workspaceID, "user_group_member", groupID, "remove", map[string]any{"group_id": groupID, "user_id": userID}); err != nil {
+			return err
+		}
+	}
+	for _, nodeID := range removed.ACLNodeIDs {
+		if err := appendChange(tx, workspaceID, "node_acl", nodeID, "revoke", map[string]any{"subject_type": "user", "subject_id": userID}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (dao *WorkspaceDAO) RemoveMemberWithAudit(workspaceID, userID uint, event *model.OperationLog) error {
 	return dao.db.Transaction(func(tx *gorm.DB) error {
 		var workspace model.Workspace
@@ -459,7 +544,11 @@ func (dao *WorkspaceDAO) RemoveMemberWithAudit(workspaceID, userID uint, event *
 				return errors.New("工作空间至少需要保留一名管理员")
 			}
 		}
-		if err := tx.Where("workspace_id = ? AND user_id = ?", workspaceID, userID).Delete(&model.UserRole{}).Error; err != nil {
+		removed, err := revokeMemberAuthorizations(tx, workspaceID, userID)
+		if err != nil {
+			return err
+		}
+		if err := appendRemovedMemberAuthorizationChanges(tx, workspaceID, userID, removed); err != nil {
 			return err
 		}
 		if err := tx.Model(&model.User{}).Where("id = ?", userID).
@@ -469,7 +558,10 @@ func (dao *WorkspaceDAO) RemoveMemberWithAudit(workspaceID, userID uint, event *
 		if err := tx.Delete(&membership).Error; err != nil {
 			return err
 		}
-		if err := appendChange(tx, workspaceID, "workspace_membership", userID, "delete", map[string]any{"user_id": userID}); err != nil {
+		if err := appendChange(tx, workspaceID, "workspace_membership", userID, "delete", map[string]any{
+			"user_id": userID, "removed_role_ids": removed.RoleIDs,
+			"removed_group_ids": removed.GroupIDs, "removed_acl_node_ids": removed.ACLNodeIDs,
+		}); err != nil {
 			return err
 		}
 		var user model.User
@@ -477,7 +569,11 @@ func (dao *WorkspaceDAO) RemoveMemberWithAudit(workspaceID, userID uint, event *
 			return err
 		}
 		prepareWorkspaceMemberAuditEvent(event, membership, user.Username)
-		return appendAuditEvent(tx, event, workspaceMembershipAuditSnapshot(membership), nil)
+		before := workspaceMembershipAuditSnapshot(membership)
+		before["removed_role_ids"] = removed.RoleIDs
+		before["removed_group_ids"] = removed.GroupIDs
+		before["removed_acl_node_ids"] = removed.ACLNodeIDs
+		return appendAuditEvent(tx, event, before, nil)
 	})
 }
 
