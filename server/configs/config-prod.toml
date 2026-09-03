@@ -44,6 +44,7 @@
   health_check_interval_minutes = 5
 
 [upload]
+  max_file_bytes = 107374182400
   allowed_extensions = [".txt", ".md", ".csv", ".json", ".xml", ".yaml", ".yml", ".log", ".conf", ".ini", ".rtf", ".pdf", ".doc", ".docx", ".docm", ".xls", ".xlsx", ".xlsm", ".ppt", ".pptx", ".pptm", ".odt", ".ods", ".odp", ".zip", ".7z", ".rar", ".tar", ".gz", ".tgz", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg", ".mp3", ".wav", ".m4a", ".mp4", ".mov", ".avi", ".mkv", ".webm"]
   allow_mime_mismatch = false
 

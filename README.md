@@ -406,6 +406,9 @@ make frontend-build
 ### 8.3 上传、分享和内容检查
 
 - 上传扩展名白名单由 `[upload].allowed_extensions` 或 `FILESHARE_ALLOWED_EXTENSIONS` 控制。
+- 单文件大小由 `[upload].max_file_bytes` 或 `FILESHARE_UPLOAD_MAX_FILE_BYTES` 控制，默认 100 GiB，允许范围为 1 MiB 到 1 TiB。
+- 分片大小必须在 1 MiB 到 64 MiB 之间；系统同时限制单个上传会话最多 1,048,576 个分片。
+- 修改上传会话约束后，生产环境必须先执行版本化 migration，再启动 Server。
 - 默认校验常见格式 Magic Number、Office 压缩包结构、VBA 宏扩展名一致性，以及 ZIP 条目数、解压大小、压缩比、嵌套层数和路径安全。
 - 只有明确设置 `allow_mime_mismatch = true` 才跳过基础内容与扩展名匹配检查，ZIP 结构安全检查始终执行。
 - 分享链接会冻结文件版本或目录快照；原始 token 只在创建成功响应中返回。

@@ -15,6 +15,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -39,14 +40,16 @@ import (
 )
 
 const (
-	minChunkSize                  = 1 << 20
-	maxChunkSize                  = 64 << 20
-	maxZIPEntries                 = 100000
-	maxZIPExpandedSize     uint64 = 10 << 30
-	maxZIPCompressionRatio        = 1000
-	minZIPRatioCheckSize          = 1 << 20
-	maxZIPNestingDepth            = 3
-	maxNestedZIPSize       int64  = 64 << 20
+	minChunkSize                     = 1 << 20
+	maxChunkSize                     = 64 << 20
+	maxUploadChunks                  = 1 << 20
+	defaultMaxUploadFileBytes int64  = 100 << 30
+	maxZIPEntries                    = 100000
+	maxZIPExpandedSize        uint64 = 10 << 30
+	maxZIPCompressionRatio           = 1000
+	minZIPRatioCheckSize             = 1 << 20
+	maxZIPNestingDepth               = 3
+	maxNestedZIPSize          int64  = 64 << 20
 )
 
 type UploadHandler struct {
@@ -72,6 +75,7 @@ func NewUploadHandler() *UploadHandler {
 // @Failure 400 {object} response.Response
 // @Failure 401 {object} response.Response
 // @Failure 403 {object} response.Response
+// @Failure 413 {object} response.Response
 // @Failure 500 {object} response.Response
 // @Router /management/uploads/init [post]
 func (h *UploadHandler) Init(c *gin.Context) {
@@ -104,8 +108,14 @@ func (h *UploadHandler) Init(c *gin.Context) {
 		response.BadRequest(c, "分片大小必须在 1 MiB 到 64 MiB 之间")
 		return
 	}
-	if req.TotalSize < req.ChunkSize && req.TotalSize > maxChunkSize {
-		response.BadRequest(c, "单个分片不能超过 64 MiB")
+	maxFileBytes := configuredMaxUploadFileBytes()
+	if req.TotalSize > maxFileBytes {
+		response.PayloadTooLarge(c, fmt.Sprintf("文件大小不能超过 %d 字节", maxFileBytes))
+		return
+	}
+	totalChunks, err := calculateUploadChunkCount(req.TotalSize, req.ChunkSize, maxFileBytes)
+	if err != nil {
+		response.PayloadTooLarge(c, err.Error())
 		return
 	}
 	if req.ClientSHA256 != "" {
@@ -194,12 +204,6 @@ func (h *UploadHandler) Init(c *gin.Context) {
 		}
 	}
 
-	totalChunks64 := (req.TotalSize + req.ChunkSize - 1) / req.ChunkSize
-	if totalChunks64 > int64(^uint(0)>>1) {
-		response.BadRequest(c, "文件分片数量过多")
-		return
-	}
-	totalChunks := int(totalChunks64)
 	uploadID := randomUploadID()
 	store, err := h.posixStorage()
 	if err != nil {
@@ -256,17 +260,18 @@ func (h *UploadHandler) Part(c *gin.Context) {
 	if !ok {
 		return
 	}
-	if partNo < 0 || partNo >= session.TotalChunks {
+	if err := validateUploadSessionDimensions(session, configuredMaxUploadFileBytes()); err != nil {
+		response.Conflict(c, err.Error())
+		return
+	}
+	expectedSize, err := expectedUploadPartSize(session, partNo)
+	if err != nil {
 		response.BadRequest(c, "分片编号超出范围")
 		return
 	}
 	if time.Now().After(session.ExpiresAt) {
 		response.Conflict(c, "上传会话已过期")
 		return
-	}
-	expectedSize := session.ChunkSize
-	if partNo == session.TotalChunks-1 {
-		expectedSize = session.TotalSize - session.ChunkSize*int64(session.TotalChunks-1)
 	}
 	store, err := h.posixStorage()
 	if err != nil {
@@ -349,6 +354,10 @@ func (h *UploadHandler) Status(c *gin.Context) {
 func (h *UploadHandler) Complete(c *gin.Context) {
 	actor, session, _, ok := h.loadSession(c)
 	if !ok {
+		return
+	}
+	if err := validateUploadSessionDimensions(session, configuredMaxUploadFileBytes()); err != nil {
+		response.Conflict(c, err.Error())
 		return
 	}
 	var req struct {
@@ -489,9 +498,68 @@ func (h *UploadHandler) loadSession(c *gin.Context) (authorization.Actor, *model
 			response.BadRequest(c, err.Error())
 			return authorization.Actor{}, nil, 0, false
 		}
+		if parsed > uint(maxUploadChunks) {
+			response.BadRequest(c, "part_no 超出允许范围")
+			return authorization.Actor{}, nil, 0, false
+		}
 		partNo = int(parsed)
 	}
 	return actor, session, partNo, true
+}
+
+func configuredMaxUploadFileBytes() int64 {
+	if cfg := config.GetConfig(); cfg != nil && cfg.Upload.MaxFileBytes > 0 {
+		return cfg.Upload.MaxFileBytes
+	}
+	return defaultMaxUploadFileBytes
+}
+
+func calculateUploadChunkCount(totalSize, chunkSize, maxFileBytes int64) (int, error) {
+	if totalSize <= 0 || chunkSize <= 0 {
+		return 0, errors.New("上传文件大小和分片大小必须为正数")
+	}
+	if maxFileBytes <= 0 || totalSize > maxFileBytes {
+		return 0, fmt.Errorf("文件大小不能超过 %d 字节", maxFileBytes)
+	}
+	if chunkSize < minChunkSize || chunkSize > maxChunkSize {
+		return 0, errors.New("分片大小必须在 1 MiB 到 64 MiB 之间")
+	}
+	chunks := totalSize / chunkSize
+	if totalSize%chunkSize != 0 {
+		chunks++
+	}
+	if chunks <= 0 || chunks > maxUploadChunks || chunks > int64(^uint(0)>>1) {
+		return 0, errors.New("文件分片数量过多")
+	}
+	return int(chunks), nil
+}
+
+func validateUploadSessionDimensions(session *model.UploadSession, maxFileBytes int64) error {
+	if session == nil {
+		return errors.New("上传会话不存在")
+	}
+	chunks, err := calculateUploadChunkCount(session.TotalSize, session.ChunkSize, maxFileBytes)
+	if err != nil {
+		return errors.New("上传会话已超过当前系统限制，请取消后重新上传")
+	}
+	if session.TotalChunks != chunks {
+		return errors.New("上传会话分片信息无效，请取消后重新上传")
+	}
+	return nil
+}
+
+func expectedUploadPartSize(session *model.UploadSession, partNo int) (int64, error) {
+	if session == nil || partNo < 0 || partNo >= session.TotalChunks {
+		return 0, errors.New("part number out of range")
+	}
+	if partNo != session.TotalChunks-1 {
+		return session.ChunkSize, nil
+	}
+	lastSize := session.TotalSize % session.ChunkSize
+	if lastSize == 0 {
+		lastSize = session.ChunkSize
+	}
+	return lastSize, nil
 }
 
 func (h *UploadHandler) posixStorage() (*storage.POSIX, error) {

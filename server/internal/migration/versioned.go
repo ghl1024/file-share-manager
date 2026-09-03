@@ -23,9 +23,9 @@ import (
 )
 
 const (
-	CurrentVersion    = "202608160001"
+	CurrentVersion    = "202609030001"
 	migrationLockName = "file_share_manager_schema_migration"
-	migrationManifest = "core-schema-v2:file-versions-scan-retry:storage-quarantine:audit-streams:audit-archives:ldap-sync-history:notification-channels:notification-outbox:user-notifications:user-notification-preferences:nodes-ngram-search:backup-compaction:recent-node-access:node-comments:node-comment-mentions"
+	migrationManifest = "core-schema-v2:file-versions-scan-retry:storage-quarantine:audit-streams:audit-archives:ldap-sync-history:notification-channels:notification-outbox:user-notifications:user-notification-preferences:nodes-ngram-search:backup-compaction:recent-node-access:node-comments:node-comment-mentions:upload-session-dimension-checks"
 )
 
 type SchemaMigration struct {

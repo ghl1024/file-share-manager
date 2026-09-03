@@ -11,6 +11,8 @@
 package migration
 
 import (
+	"fmt"
+
 	"file-share-manager/server/internal/dao"
 	"file-share-manager/server/internal/model"
 
@@ -29,7 +31,41 @@ func Run(db *gorm.DB) error {
 	if err := ensureNodeSearchIndexes(db); err != nil {
 		return err
 	}
+	if err := ensureUploadSessionConstraints(db); err != nil {
+		return err
+	}
 	return dao.EnsureAuditStreams(db)
+}
+
+func ensureUploadSessionConstraints(db *gorm.DB) error {
+	constraints := []struct {
+		name string
+		expr string
+	}{
+		{name: "chk_upload_sessions_total_size_positive", expr: "total_size > 0"},
+		{name: "chk_upload_sessions_chunk_size_positive", expr: "chunk_size > 0"},
+		{name: "chk_upload_sessions_total_chunks_positive", expr: "total_chunks > 0"},
+	}
+	for _, constraint := range constraints {
+		var count int64
+		if err := db.Raw(`
+			SELECT COUNT(*)
+			FROM information_schema.TABLE_CONSTRAINTS
+			WHERE CONSTRAINT_SCHEMA = DATABASE()
+			  AND TABLE_NAME = 'upload_sessions'
+			  AND CONSTRAINT_NAME = ?
+			  AND CONSTRAINT_TYPE = 'CHECK'
+		`, constraint.name).Scan(&count).Error; err != nil {
+			return fmt.Errorf("check upload_sessions constraint %s: %w", constraint.name, err)
+		}
+		if count > 0 {
+			continue
+		}
+		if err := db.Exec("ALTER TABLE upload_sessions ADD CONSTRAINT " + constraint.name + " CHECK (" + constraint.expr + ")").Error; err != nil {
+			return fmt.Errorf("add upload_sessions constraint %s: %w", constraint.name, err)
+		}
+	}
+	return nil
 }
 
 func ensureNodeSearchIndexes(db *gorm.DB) error {

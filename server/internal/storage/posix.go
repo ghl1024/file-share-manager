@@ -85,7 +85,7 @@ func (s *POSIX) WritePart(uploadID string, partNo int, src io.Reader, expectedSi
 	if err != nil {
 		return 0, err
 	}
-	written, copyErr := io.Copy(file, io.LimitReader(src, expectedSize+1))
+	written, copyErr := io.Copy(file, io.LimitReader(src, sizeProbeLimit(expectedSize)))
 	closeErr := file.Close()
 	if copyErr != nil {
 		_ = os.Remove(tmpPath)
@@ -171,6 +171,11 @@ func (s *POSIX) Merge(uploadID string, workspaceID uint, totalChunks int, expect
 			_ = os.Remove(tmpPath)
 			return MergeResult{}, closeErr
 		}
+		if written < 0 || total > maxInt64-written {
+			_ = destination.Close()
+			_ = os.Remove(tmpPath)
+			return MergeResult{}, errors.New("merged object size overflow")
+		}
 		total += written
 	}
 	if err := destination.Sync(); err != nil {
@@ -219,7 +224,7 @@ func (s *POSIX) ImportObject(workspaceID uint, src io.Reader, expectedSize int64
 		return MergeResult{}, err
 	}
 	hash := sha256.New()
-	written, copyErr := io.Copy(io.MultiWriter(destination, hash), io.LimitReader(src, expectedSize+1))
+	written, copyErr := io.Copy(io.MultiWriter(destination, hash), io.LimitReader(src, sizeProbeLimit(expectedSize)))
 	syncErr := destination.Sync()
 	closeErr := destination.Close()
 	if copyErr != nil || syncErr != nil || closeErr != nil {
@@ -245,6 +250,15 @@ func firstError(values ...error) error {
 		}
 	}
 	return nil
+}
+
+const maxInt64 = int64(^uint64(0) >> 1)
+
+func sizeProbeLimit(expectedSize int64) int64 {
+	if expectedSize >= maxInt64 {
+		return maxInt64
+	}
+	return expectedSize + 1
 }
 
 func (s *POSIX) RemoveUpload(uploadID string) error {

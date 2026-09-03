@@ -6,7 +6,7 @@
 - CNB: https://cnb.cool/ghl1024/file-share-manager
 - GitCode: https://gitcode.com/haydenguo/file-share-manager
 - Author: https://hayden.pub
-*/
+ */
 
 package config
 
@@ -67,6 +67,7 @@ dbname = "fileshare"
 	t.Setenv("FILESHARE_CLAMAV_RETRY_BATCH_SIZE", "75")
 	t.Setenv("FILESHARE_QUARANTINE_RETENTION_DAYS", "14")
 	t.Setenv("FILESHARE_RECONCILE_BATCH_SIZE", "250")
+	t.Setenv("FILESHARE_UPLOAD_MAX_FILE_BYTES", "123456789")
 
 	if err := LoadConfig(path); err != nil {
 		t.Fatalf("LoadConfig() error = %v", err)
@@ -118,6 +119,9 @@ dbname = "fileshare"
 	}
 	if GetConfig().Lifecycle.QuarantineRetentionDays != 14 || GetConfig().Lifecycle.ReconcileBatchSize != 250 {
 		t.Fatalf("Lifecycle reconciliation config = %#v", GetConfig().Lifecycle)
+	}
+	if GetConfig().Upload.MaxFileBytes != 123456789 {
+		t.Fatalf("Upload.MaxFileBytes = %d, want 123456789", GetConfig().Upload.MaxFileBytes)
 	}
 }
 
@@ -445,6 +449,33 @@ dbname = "fileshare"
 	want := []string{"10.0.0.0/8", "192.0.2.10"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("TrustedProxies = %#v, want %#v", got, want)
+	}
+}
+
+func TestLoadConfigRejectsInvalidUploadMaxFileBytes(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	content := `[server]
+port = 29000
+mode = "debug"
+web_url = "http://localhost:39000"
+
+[database]
+host = "127.0.0.1"
+port = 3306
+user = "fileshare"
+password = "fileshare123"
+dbname = "fileshare"
+
+[upload]
+max_file_bytes = 1024
+`
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("FILESHARE_UPLOAD_MAX_FILE_BYTES", "")
+	if err := LoadConfig(path); err == nil || !strings.Contains(err.Error(), "upload.max_file_bytes") {
+		t.Fatalf("LoadConfig() error = %v, want upload max file size validation error", err)
 	}
 }
 

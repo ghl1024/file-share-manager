@@ -6,7 +6,7 @@
 - CNB: https://cnb.cool/ghl1024/file-share-manager
 - GitCode: https://gitcode.com/haydenguo/file-share-manager
 - Author: https://hayden.pub
-*/
+ */
 
 package config
 
@@ -93,6 +93,7 @@ type StorageConfig struct {
 }
 
 type UploadConfig struct {
+	MaxFileBytes      int64    `toml:"max_file_bytes"`
 	AllowedExtensions []string `toml:"allowed_extensions"`
 	AllowMIMEMismatch bool     `toml:"allow_mime_mismatch"`
 }
@@ -291,6 +292,9 @@ func applyDefaults(cfg *Config) {
 	}
 	if cfg.Storage.HealthCheckIntervalMinutes <= 0 {
 		cfg.Storage.HealthCheckIntervalMinutes = 5
+	}
+	if cfg.Upload.MaxFileBytes <= 0 {
+		cfg.Upload.MaxFileBytes = 100 << 30
 	}
 	if len(cfg.Upload.AllowedExtensions) == 0 {
 		cfg.Upload.AllowedExtensions = []string{
@@ -510,6 +514,9 @@ func applyEnv(cfg *Config) error {
 	setString("FILESHARE_NOTIFICATION_CREDENTIAL_KEY", &cfg.Notification.CredentialEncryptionKey)
 	if value := strings.TrimSpace(os.Getenv("FILESHARE_ALLOWED_EXTENSIONS")); value != "" {
 		cfg.Upload.AllowedExtensions = strings.Split(value, ",")
+	}
+	if err := setInt64("FILESHARE_UPLOAD_MAX_FILE_BYTES", &cfg.Upload.MaxFileBytes); err != nil {
+		return err
 	}
 	if err := setInt("FILESHARE_DB_PORT", &cfg.Database.Port); err != nil {
 		return err
@@ -815,6 +822,9 @@ func validate(cfg *Config) error {
 	}
 	if cfg.Backup.CompactionThreshold < 2 || cfg.Backup.CompactionThreshold > 1000 {
 		return fmt.Errorf("backup.compaction_incremental_threshold must be between 2 and 1000")
+	}
+	if cfg.Upload.MaxFileBytes < 1<<20 || cfg.Upload.MaxFileBytes > 1<<40 {
+		return fmt.Errorf("upload.max_file_bytes must be between 1 MiB and 1 TiB")
 	}
 	if len(cfg.Upload.AllowedExtensions) > 256 {
 		return fmt.Errorf("upload.allowed_extensions must contain at most 256 entries")
