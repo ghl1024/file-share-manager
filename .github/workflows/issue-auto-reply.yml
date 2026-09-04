@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Reply to labeled issue
-        uses: actions/github-script@v7 # v7.0.1
+        uses: actions/github-script@v9 # v7.0.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
