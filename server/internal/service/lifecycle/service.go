@@ -83,7 +83,7 @@ func (s *Service) RunOnce(now time.Time, trashRetention time.Duration) error {
 	for _, share := range expiredShares {
 		publishShareUserNotification("share:expired", "外链已过期", "你的外链“"+share.Name+"”已过期。", share, "info")
 	}
-	versions, err := s.nodes.PurgeExpiredTrash(now.Add(-trashRetention), now)
+	purgeResult, err := s.nodes.PurgeExpiredTrash(now.Add(-trashRetention), now)
 	if err != nil {
 		return err
 	}
@@ -100,8 +100,18 @@ func (s *Service) RunOnce(now time.Time, trashRetention time.Duration) error {
 	if readerErr != nil {
 		return readerErr
 	}
-	removed := make(map[string]struct{}, len(versions))
-	for _, version := range versions {
+	removed := make(map[string]struct{}, len(purgeResult.Versions))
+	for _, id := range purgeResult.UploadIDs {
+		if err := store.RemoveUpload(id); err != nil {
+			logger.Warn("remove_purged_node_upload_staging_failed", "upload_id", id, "error", err)
+		}
+	}
+	for _, id := range purgeResult.BatchArchiveIDs {
+		if err := store.RemoveBatchArchive(id); err != nil {
+			logger.Warn("remove_purged_node_batch_archive_failed", "job_id", id, "error", err)
+		}
+	}
+	for _, version := range purgeResult.Versions {
 		storageClass := strings.ToLower(strings.TrimSpace(version.StorageClass))
 		if storageClass == "" {
 			storageClass = "standard"

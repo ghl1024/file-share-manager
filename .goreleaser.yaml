@@ -103,5 +103,9 @@ release:
     owner: ghl1024
     name: file-share-manager
   draft: false
+  # Release Drafter creates a draft first; reuse it when publishing from GitHub.
+  use_existing_draft: true
+  replace_existing_artifacts: true
+  name_template: '{{ .Tag }}'
   prerelease: auto
   mode: replace

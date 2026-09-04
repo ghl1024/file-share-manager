@@ -1,3 +1,5 @@
+简体中文 | [English](README.en.md)
+
 # File Share Manager Frontend
 
 Vue 3 + Vite + Element Plus + Pinia 前端，服务于工作空间、目录浏览、分片上传、版本下载和审计查询。

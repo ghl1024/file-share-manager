@@ -1,32 +1,80 @@
 v*:
   tag_push:
-    - name: release
+    - imports:
+        - https://cnb.cool/ghl1024/cloud-native-build/-/blob/main/env.yml
+      if: |
+        set -euo pipefail
+
+        commit="$(git rev-parse "${CNB_COMMIT}^{commit}")"
+        previous_tag="$(git describe --tags --abbrev=0 "${commit}^" 2>/dev/null || true)"
+        if [[ -n "${previous_tag}" ]]; then
+          changed_files=(git diff -z --name-only "${previous_tag}" "${commit}")
+        else
+          changed_files=(git diff-tree -z --no-commit-id --name-only -r --root "${commit}")
+        fi
+
+        while IFS= read -r -d '' file; do
+          case "$file" in
+            .github/**|.cnb/**|.cnb.yml|.goreleaser.yaml|push.sh)
+              ;;
+            *)
+              exit 0
+              ;;
+          esac
+        done < <("${changed_files[@]}")
+
+        exit 1
       runner:
         cpus: 4
+      services:
+        - docker
       stages:
-        - name: 构建 Frontend 发布资源
-          image: node:22-alpine
+        - name: 🛠️ 编译产物 (Linux / macOS)
+          image: goreleaser/goreleaser:latest
           script: |
-            cd frontend
-            npm ci
+            set -e
+
+            apk add --no-cache bash nodejs npm
+
+            export GOVERSION=$(go version | awk '{print $3}')
+            export PATH="${PATH}:$(go env GOPATH)/bin"
+            export GOPROXY="https://goproxy.cn,direct"
             export VITE_APP_VERSION="${CNB_BRANCH}"
             export VITE_GIT_COMMIT="${CNB_COMMIT}"
             export VITE_BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            npm run build:prod
-        - name: 构建跨平台发布包
-          image: goreleaser/goreleaser:v2.17.1
-          script: |
-            export GOPROXY=https://goproxy.cn,direct
-            export GOVERSION="$(go env GOVERSION)"
-            goreleaser release --clean --skip=before --skip=publish --snapshot
-        - name: 创建 CNB Release
+
+            node --version
+            npm --version
+            go version
+
+            goreleaser release --clean --skip=publish
+
+            ls -lh dist
+            # Windows 包暂不构建，不再校验 zip 归档。
+            # archive_count=$(find dist -maxdepth 1 -type f \( -name '*.tar.gz' -o -name '*.zip' \) | wc -l)
+            archive_count=$(find dist -maxdepth 1 -type f -name '*.tar.gz' | wc -l)
+            test "${archive_count}" -eq 4
+            test -f dist/checksums.txt
+
+        - name: 🚀 创建 Release
           type: git:release
           options:
-            tag: ${CNB_BRANCH}
             title: File Share Manager ${CNB_BRANCH}
-        - name: 上传 CNB Release 附件
+            latest: true
+
+        - name: 📦 上传 Release 附件到 CNB
           image: cnbcool/attachments:latest
           settings:
+            tag: ${CNB_BRANCH}
             attachments:
               - dist/*.tar.gz
+              # Windows 包暂不构建，不再上传 zip 归档。
+              # - dist/*.zip
               - dist/checksums.txt
+
+        - name: 🌏 同步 Release 到 Gitee 和 GitCode
+          image: goreleaser/goreleaser:latest
+          script: |
+            set -eu
+            apk add --no-cache bash curl jq
+            bash .cnb/scripts/sync-release.sh

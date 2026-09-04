@@ -1,4 +1,5 @@
 name: Release
+# 推送 v 开头的标签时自动发布，也可手动修复既有 Tag 的 Release。
 
 on:
   push:
@@ -7,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing release tag to sync, for example v1.1.0'
+        description: 'Existing release tag to build, for example v1.2.2'
         required: true
         type: string
 
@@ -19,639 +20,226 @@ env:
   GOPROXY: https://goproxy.cn,direct
 
 jobs:
+  tag_filter:
+    name: Tag Change Filter
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.filter.outputs.should_run }}
+    steps:
+      - name: Checkout tag commit
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Detect whether tag touches non-CI files
+        id: filter
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          should_run=true
+          if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            commit_ref="${GITHUB_SHA}^{commit}"
+            commit="$(git rev-parse "$commit_ref")"
+            previous_tag="$(git describe --tags --abbrev=0 "${commit}^" 2>/dev/null || true)"
+            should_run=false
+
+            if [[ -n "${previous_tag}" ]]; then
+              changed_files=(git diff -z --name-only "${previous_tag}" "${commit}")
+            else
+              changed_files=(git diff-tree -z --no-commit-id --name-only -r --root "${commit}")
+            fi
+
+            while IFS= read -r -d '' file; do
+              case "$file" in
+                .github/**|.cnb/**|.cnb.yml|.goreleaser.yaml|push.sh)
+                  ;;
+                *)
+                  should_run=true
+                  break
+                  ;;
+              esac
+            done < <("${changed_files[@]}")
+          fi
+
+          echo "should_run=${should_run}" >> "$GITHUB_OUTPUT"
+
   goreleaser:
-    name: Build and Publish Release
-    if: github.event_name == 'push'
+    needs: tag_filter
+    if: ${{ needs.tag_filter.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # v4.2.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Select GoReleaser configuration
+        id: release_config
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          config=.goreleaser.yaml
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            default_branch="${{ github.event.repository.default_branch }}"
+            git fetch origin "${default_branch}:refs/remotes/origin/${default_branch}"
+            config="${RUNNER_TEMP}/goreleaser.yaml"
+            git show "refs/remotes/origin/${default_branch}:.goreleaser.yaml" > "${config}"
+          fi
+
+          echo "path=${config}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Go
-        uses: actions/setup-go@v5 # v5.5.0
+        uses: actions/setup-go@v7
         with:
-          go-version-file: server/go.mod
-          cache-dependency-path: server/go.sum
+          go-version-file: 'server/go.mod'
+          cache-dependency-path: 'server/go.sum'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4 # v4.4.0
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Export build metadata
-        id: build_meta
-        shell: bash
+      - name: Get Go Version
+        id: go_version
         run: |
-          echo "go_version=$(go env GOVERSION)" >> "$GITHUB_OUTPUT"
-          echo "build_time=$(git show -s --format=%cI HEAD)" >> "$GITHUB_OUTPUT"
+          VERSION="$(go version | awk '{print $3}')"
+          {
+            echo "GOVERSION=${VERSION}"
+            echo "VITE_APP_VERSION=${RELEASE_TAG}"
+            echo "VITE_GIT_COMMIT=${GITHUB_SHA}"
+            echo "VITE_BUILD_TIME=$(git show -s --format=%cI HEAD)"
+          } >> "$GITHUB_ENV"
+          echo "检测到 Go 版本: ${VERSION}"
 
+      # Windows 包构建已在 .goreleaser.yaml 中注释关闭，GitHub 发布只产出 Linux/macOS 包。
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6 # v6.4.0
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
-          version: v2.17.1
-          args: release --clean
+          version: "~> v2"
+          args: release --clean --skip=publish --config=${{ steps.release_config.outputs.path }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GOVERSION: ${{ steps.build_meta.outputs.go_version }}
-          VITE_APP_VERSION: ${{ env.RELEASE_TAG }}
-          VITE_GIT_COMMIT: ${{ github.sha }}
-          VITE_BUILD_TIME: ${{ steps.build_meta.outputs.build_time }}
+          GOVERSION: ${{ env.GOVERSION }}
+          VITE_APP_VERSION: ${{ env.VITE_APP_VERSION }}
+          VITE_GIT_COMMIT: ${{ env.VITE_GIT_COMMIT }}
+          VITE_BUILD_TIME: ${{ env.VITE_BUILD_TIME }}
 
-  cleanup_github_release_assets:
-    name: Cleanup GitHub Release Assets
-    needs: goreleaser
-    if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.goreleaser.result == 'success') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Remove Windows assets from GitHub Release
+      - name: Publish GitHub Release
+        uses: actions/github-script@v9
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          tag="$RELEASE_TAG"
-          release_body=/tmp/github-release.json
-
-          require_success() {
-            local status="$1"
-            local action="$2"
-            local body_file="$3"
-
-            if [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
-              echo "${action} failed with HTTP ${status}:" >&2
-              cat "$body_file" >&2
-              exit 1
-            fi
-          }
-
-          delete_github_asset() {
-            local filename="$1"
-            local asset_id="$2"
-            local status
-            local body_file=/tmp/github-delete-asset.json
-
-            status=$(curl -sS -o "$body_file" -w '%{http_code}' \
-              -X DELETE \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/assets/${asset_id}")
-            if [ "$status" = "404" ]; then
-              echo "Skipped deleting ${filename}: GitHub says the existing asset is already missing."
-            else
-              require_success "$status" "GitHub release asset delete (${filename})" "$body_file"
-              echo "Deleted ${filename}"
-            fi
-          }
-
-          status=$(curl -sS -o "$release_body" -w '%{http_code}' \
-            -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/${tag}")
-          require_success "$status" "GitHub release lookup" "$release_body"
-
-          release_id=$(jq -er '.id' "$release_body")
-
-          jq -c '.assets[] | select(.name | test("_windows_"))' "$release_body" | while IFS= read -r asset; do
-            filename=$(echo "$asset" | jq -er '.name')
-            asset_id=$(echo "$asset" | jq -er '.id')
-            delete_github_asset "$filename" "$asset_id"
-          done
-
-          checksums_asset=$(jq -ec '.assets[] | select(.name == "checksums.txt")' "$release_body" || true)
-          if [ -n "$checksums_asset" ]; then
-            checksums_id=$(echo "$checksums_asset" | jq -er '.id')
-            checksums_url=$(echo "$checksums_asset" | jq -er '.url')
-
-            curl -fsSL -o /tmp/github-checksums.txt \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/octet-stream" \
-              "$checksums_url"
-            awk '$0 !~ /_windows_/' /tmp/github-checksums.txt > /tmp/github-checksums.filtered
-
-            if ! cmp -s /tmp/github-checksums.txt /tmp/github-checksums.filtered; then
-              delete_github_asset "checksums.txt" "$checksums_id"
-              status=$(curl -sS -o /tmp/github-upload-checksums.json -w '%{http_code}' \
-                -X POST \
-                -H "Authorization: Bearer ${GH_TOKEN}" \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                -H "Content-Type: text/plain" \
-                --data-binary @/tmp/github-checksums.filtered \
-                "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${release_id}/assets?name=checksums.txt")
-              require_success "$status" "GitHub release checksums upload" /tmp/github-upload-checksums.json
-              echo "Uploaded filtered checksums.txt"
-            fi
-          fi
-
-  sync-to-gitee:
-    name: Sync Release to Gitee
-    needs:
-      - goreleaser
-      - cleanup_github_release_assets
-    if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.goreleaser.result == 'success') && needs.cleanup_github_release_assets.result == 'success' }}
-    runs-on: ubuntu-latest
-    env:
-      GITEE_OWNER: ghl1024
-      GITEE_REPO: file-share-manager
-    steps:
-      - name: Check Gitee token
-        id: gitee
-        env:
-          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "Release tag ${RELEASE_TAG} does not match vMAJOR.MINOR.PATCH."
-            exit 1
-          fi
-
-          if [ -z "$GITEE_TOKEN" ]; then
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "GITEE_TOKEN is not configured; skipping Gitee synchronization."
-          else
-            status=$(curl -sS -o /tmp/gitee-repo.json -w '%{http_code}' \
-              --get "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}" \
-              --data-urlencode "access_token=${GITEE_TOKEN}")
-
-            if [ "$status" != "200" ]; then
-              echo "GITEE_TOKEN cannot access ${GITEE_OWNER}/${GITEE_REPO}; HTTP ${status}:"
-              cat /tmp/gitee-repo.json
-              exit 1
-            fi
-
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Download GitHub Release
-        if: steps.gitee.outputs.configured == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          tag="$RELEASE_TAG"
-          mkdir -p /tmp/fileshare-release-assets
-
-          echo "Waiting for GitHub Release assets to become available..."
-          sleep 30
-
-          release_json=$(curl -sS -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/${tag}")
-
-          echo "$release_json" | jq -er '.body // ""' > /tmp/fileshare-release-body.md
-          echo "$release_json" | jq -ec '.assets[]' | while IFS= read -r asset; do
-            filename=$(echo "$asset" | jq -er '.name')
-            if [[ "$filename" == *_windows_* ]]; then
-              echo "Skipping Windows asset ${filename}"
-              continue
-            fi
-
-            asset_url=$(echo "$asset" | jq -er '.url')
-            echo "Downloading ${filename}"
-            curl -fsSL -o "/tmp/fileshare-release-assets/${filename}" \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/octet-stream" \
-              "${asset_url}"
-          done
-
-          if [ -f /tmp/fileshare-release-assets/checksums.txt ]; then
-            awk '$0 !~ /_windows_/' /tmp/fileshare-release-assets/checksums.txt > /tmp/fileshare-checksums.filtered
-            mv /tmp/fileshare-checksums.filtered /tmp/fileshare-release-assets/checksums.txt
-          fi
-
-          test -n "$(find /tmp/fileshare-release-assets -maxdepth 1 -type f -print -quit)"
-
-      - name: Create or update Gitee Release
-        if: steps.gitee.outputs.configured == 'true'
-        env:
-          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          api="https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}"
-          tag="$RELEASE_TAG"
-          release_name="File Share Manager ${tag}"
-
-          require_success() {
-            local status="$1"
-            local action="$2"
-            local body_file="$3"
-
-            if [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
-              echo "${action} failed with HTTP ${status}:" >&2
-              cat "$body_file" >&2
-              exit 1
-            fi
-          }
-
-          require_release_id() {
-            local body_file="$1"
-            local release_id
-
-            if ! release_id=$(jq -er 'select(type == "object") | .id // empty' "$body_file"); then
-              echo "Gitee release response does not contain an id:" >&2
-              cat "$body_file" >&2
-              exit 1
-            fi
-
-            printf '%s\n' "$release_id"
-          }
-
-          status=$(curl -sS -o /tmp/gitee-release.json -w '%{http_code}' \
-            --get "${api}/releases/tags/${tag}" \
-            --data-urlencode "access_token=${GITEE_TOKEN}")
-
-          release_id=""
-          if [ "$status" = "200" ]; then
-            if ! release_id=$(jq -er 'select(type == "object") | .id // empty' /tmp/gitee-release.json); then
-              echo "Gitee release lookup returned no release object; creating ${tag}."
-              status="404"
-            fi
-          fi
-
-          if [ -n "$release_id" ]; then
-            status=$(curl -sS -o /tmp/gitee-release.json -w '%{http_code}' \
-              -X PATCH "${api}/releases/${release_id}" \
-              --data-urlencode "access_token=${GITEE_TOKEN}" \
-              --data-urlencode "tag_name=${tag}" \
-              --data-urlencode "name=${release_name}" \
-              --data-urlencode "body@/tmp/fileshare-release-body.md" \
-              --data-urlencode "target_commitish=main")
-            require_success "$status" "Gitee release update" /tmp/gitee-release.json
-            release_id=$(require_release_id /tmp/gitee-release.json)
-          elif [ "$status" = "404" ]; then
-            status=$(curl -sS -o /tmp/gitee-release.json -w '%{http_code}' \
-              -X POST "${api}/releases" \
-              --data-urlencode "access_token=${GITEE_TOKEN}" \
-              --data-urlencode "tag_name=${tag}" \
-              --data-urlencode "name=${release_name}" \
-              --data-urlencode "body@/tmp/fileshare-release-body.md" \
-              --data-urlencode "target_commitish=main")
-            require_success "$status" "Gitee release create" /tmp/gitee-release.json
-            release_id=$(require_release_id /tmp/gitee-release.json)
-          else
-            echo "Gitee release lookup failed with HTTP ${status}:"
-            cat /tmp/gitee-release.json
-            exit 1
-          fi
-
-          status=$(curl -sS -o /tmp/gitee-assets.json -w '%{http_code}' \
-            --get "${api}/releases/${release_id}/attach_files" \
-            --data-urlencode "access_token=${GITEE_TOKEN}")
-          require_success "$status" "Gitee release asset lookup" /tmp/gitee-assets.json
-
-          if ! jq -e 'type == "array"' /tmp/gitee-assets.json > /dev/null; then
-            echo "Gitee release asset response is not an array:"
-            cat /tmp/gitee-assets.json
-            exit 1
-          fi
-
-          delete_gitee_asset() {
-            local filename="$1"
-            local asset_id="$2"
-            local status
-
-            status=$(curl -sS -o /tmp/gitee-delete-asset.json -w '%{http_code}' \
-              -X DELETE "${api}/releases/${release_id}/attach_files/${asset_id}" \
-              --get \
-              --data-urlencode "access_token=${GITEE_TOKEN}")
-            if [ "$status" = "404" ]; then
-              echo "Skipped deleting ${filename}: Gitee says the existing asset is already missing."
-            else
-              require_success "$status" "Gitee release asset delete (${filename})" /tmp/gitee-delete-asset.json
-              echo "Deleted ${filename}"
-            fi
-          }
-
-          jq -c '.[] | select((.name // "") | test("_windows_"))' /tmp/gitee-assets.json | while IFS= read -r asset; do
-            stale_name=$(echo "$asset" | jq -er '.name')
-            stale_id=$(echo "$asset" | jq -er '.id // empty')
-            [ -n "$stale_id" ] || continue
-            delete_gitee_asset "$stale_name" "$stale_id"
-          done
-
-          for file in /tmp/fileshare-release-assets/*; do
-            [ -f "$file" ] || continue
-            filename=$(basename "$file")
-            existing_id=$(jq -r --arg name "$filename" 'map(select(.name == $name))[0].id // empty' /tmp/gitee-assets.json)
-            if [ -n "$existing_id" ]; then
-              delete_gitee_asset "$filename" "$existing_id"
-            fi
-            status=$(curl -sS -o /tmp/gitee-upload-asset.json -w '%{http_code}' \
-              -X POST "${api}/releases/${release_id}/attach_files" \
-              -F "access_token=${GITEE_TOKEN}" \
-              -F "file=@${file}")
-            require_success "$status" "Gitee release asset upload (${filename})" /tmp/gitee-upload-asset.json
-            echo "Uploaded ${filename}"
-          done
-
-  sync-to-gitcode:
-    name: Sync Release to GitCode
-    needs:
-      - goreleaser
-      - cleanup_github_release_assets
-    if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.goreleaser.result == 'success') && needs.cleanup_github_release_assets.result == 'success' }}
-    runs-on: ubuntu-latest
-    env:
-      GITCODE_OWNER: haydenguo
-      GITCODE_REPO: file-share-manager
-    steps:
-      - name: Check GitCode token
-        id: gitcode
-        env:
-          GITCODE_TOKEN: ${{ secrets.GITCODE_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "Release tag ${RELEASE_TAG} does not match vMAJOR.MINOR.PATCH."
-            exit 1
-          fi
-
-          if [ -z "$GITCODE_TOKEN" ]; then
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "GITCODE_TOKEN is not configured; skipping GitCode synchronization."
-          else
-            api="https://api.gitcode.com/api/v5/repos/${GITCODE_OWNER}/${GITCODE_REPO}"
-            status=$(curl -sS -o /tmp/gitcode-releases.json -w '%{http_code}' \
-              -H "PRIVATE-TOKEN: ${GITCODE_TOKEN}" \
-              "${api}/releases?per_page=1")
-
-            if [ "$status" != "200" ]; then
-              echo "GITCODE_TOKEN cannot access ${GITCODE_OWNER}/${GITCODE_REPO}; HTTP ${status}:"
-              cat /tmp/gitcode-releases.json
-              exit 1
-            fi
-
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Download GitHub Release
-        if: steps.gitcode.outputs.configured == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          tag="$RELEASE_TAG"
-          mkdir -p /tmp/fileshare-release-assets
-
-          echo "Waiting for GitHub Release assets to become available..."
-          sleep 30
-
-          release_json=$(curl -sS -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/${tag}")
-
-          echo "$release_json" | jq -er '.body // ""' > /tmp/fileshare-release-body.md
-          echo "$release_json" | jq -ec '.assets[]' | while IFS= read -r asset; do
-            filename=$(echo "$asset" | jq -er '.name')
-            if [[ "$filename" == *_windows_* ]]; then
-              echo "Skipping Windows asset ${filename}"
-              continue
-            fi
-
-            asset_url=$(echo "$asset" | jq -er '.url')
-            echo "Downloading ${filename}"
-            curl -fsSL -o "/tmp/fileshare-release-assets/${filename}" \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/octet-stream" \
-              "${asset_url}"
-          done
-
-          if [ -f /tmp/fileshare-release-assets/checksums.txt ]; then
-            awk '$0 !~ /_windows_/' /tmp/fileshare-release-assets/checksums.txt > /tmp/fileshare-checksums.filtered
-            mv /tmp/fileshare-checksums.filtered /tmp/fileshare-release-assets/checksums.txt
-          fi
-
-          test -n "$(find /tmp/fileshare-release-assets -maxdepth 1 -type f -print -quit)"
-
-      - name: Create or update GitCode Release
-        if: steps.gitcode.outputs.configured == 'true'
-        env:
-          GITCODE_TOKEN: ${{ secrets.GITCODE_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          api="https://api.gitcode.com/api/v5/repos/${GITCODE_OWNER}/${GITCODE_REPO}"
-          auth_header="PRIVATE-TOKEN: ${GITCODE_TOKEN}"
-          tag="$RELEASE_TAG"
-          release_name="File Share Manager ${tag}"
-
-          require_success() {
-            local status="$1"
-            local action="$2"
-            local body_file="$3"
-
-            if [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
-              echo "${action} failed with HTTP ${status}:" >&2
-              cat "$body_file" >&2
-              exit 1
-            fi
-          }
-
-          require_release_tag() {
-            local body_file="$1"
-            local release_tag
-
-            if ! release_tag=$(jq -er '.tag_name // empty' "$body_file"); then
-              echo "GitCode release response does not contain tag_name:" >&2
-              cat "$body_file" >&2
-              exit 1
-            fi
-
-            if [ "$release_tag" != "$tag" ]; then
-              echo "GitCode release response tag_name mismatch: expected ${tag}, got ${release_tag}" >&2
-              cat "$body_file" >&2
-              exit 1
-            fi
-          }
-
-          normalize_url() {
-            local url="$1"
-
-            if [[ "$url" =~ ^https?:// ]]; then
-              printf '%s\n' "$url"
-            elif [[ "$url" == /* ]]; then
-              printf 'https://api.gitcode.com%s\n' "$url"
-            else
-              printf '%s\n' "$url"
-            fi
-          }
-
-          extract_upload_url() {
-            local body_file="$1"
-            local upload_url
-
-            if ! upload_url=$(jq -er '
-              if type == "string" then
-                .
-              elif type == "object" then
-                .url // .upload_url // .uploadUrl // .href //
-                .data.url // .data.upload_url // .data.uploadUrl // .data.href //
-                (if (.data | type) == "string" then .data else empty end)
-              else
-                empty
-              end
-            ' "$body_file"); then
-              echo "GitCode upload_url response does not contain a usable URL:" >&2
-              cat "$body_file" >&2
-              exit 1
-            fi
-
-            normalize_url "$upload_url"
-          }
-
-          load_upload_headers() {
-            local body_file="$1"
-            local header
-
-            upload_headers=()
-            while IFS= read -r header; do
-              [ -n "$header" ] || continue
-              upload_headers+=(-H "$header")
-            done < <(jq -r '
-              (.headers // .data.headers // {})
-              | to_entries[]
-              | select(.value != null)
-              | "\(.key): \(.value | tostring)"
-            ' "$body_file")
-
-            if ! jq -e '(.headers // .data.headers // {}) | has("Content-Type") or has("content-type")' "$body_file" > /dev/null; then
-              upload_headers+=(-H "Content-Type: application/octet-stream")
-            fi
-          }
-
-          upload_asset() {
-            local file="$1"
-            local filename="$2"
-            local upload_url
-            local status
-            local -a upload_headers
-
-            status=$(curl -sS -o /tmp/gitcode-upload-url.json -w '%{http_code}' \
-              -H "$auth_header" \
-              --get "${api}/releases/${tag}/upload_url" \
-              --data-urlencode "access_token=${GITCODE_TOKEN}" \
-              --data-urlencode "file_name=${filename}")
-            require_success "$status" "GitCode release upload URL lookup (${filename})" /tmp/gitcode-upload-url.json
-            upload_url=$(extract_upload_url /tmp/gitcode-upload-url.json)
-            load_upload_headers /tmp/gitcode-upload-url.json
-
-            status=$(curl -sS -o /tmp/gitcode-upload-asset.json -w '%{http_code}' \
-              -X PUT "${upload_url}" \
-              "${upload_headers[@]}" \
-              --upload-file "$file")
-            if [[ "$status" =~ ^2[0-9][0-9]$ ]]; then
-              echo "Uploaded ${filename}"
-              return 0
-            fi
-
-            require_success "$status" "GitCode release asset upload (${filename})" /tmp/gitcode-upload-asset.json
-          }
-
-          delete_gitcode_asset() {
-            local filename="$1"
-            local asset_id="$2"
-            local status
-
-            status=$(curl -sS -o /tmp/gitcode-delete-asset.json -w '%{http_code}' \
-              -X DELETE "${api}/releases/${tag}/attach_files/${asset_id}" \
-              -H "$auth_header" \
-              --get \
-              --data-urlencode "access_token=${GITCODE_TOKEN}")
-            if [ "$status" = "404" ]; then
-              echo "Skipped deleting ${filename}: GitCode says the existing asset is already missing."
-            else
-              require_success "$status" "GitCode release asset delete (${filename})" /tmp/gitcode-delete-asset.json
-              echo "Deleted ${filename}"
-            fi
-          }
-
-          create_payload=$(jq -n \
-            --arg tag "$tag" \
-            --arg name "$release_name" \
-            --rawfile body /tmp/fileshare-release-body.md \
-            '{tag_name: $tag, name: $name, body: $body, target_commitish: "main", release_status: "latest"}')
-
-          update_payload=$(jq -n \
-            --arg name "$release_name" \
-            --rawfile body /tmp/fileshare-release-body.md \
-            '{name: $name, body: $body, release_status: "latest"}')
-
-          status=$(curl -sS -o /tmp/gitcode-release.json -w '%{http_code}' \
-            -H "$auth_header" \
-            "${api}/releases/tags/${tag}")
-
-          if [ "$status" = "200" ]; then
-            status=$(curl -sS -o /tmp/gitcode-release.json -w '%{http_code}' \
-              -X PATCH "${api}/releases/${tag}" \
-              -H "$auth_header" \
-              -H "Content-Type: application/json" \
-              -d "$update_payload")
-            require_success "$status" "GitCode release update" /tmp/gitcode-release.json
-            require_release_tag /tmp/gitcode-release.json
-          elif [ "$status" = "404" ]; then
-            status=$(curl -sS -o /tmp/gitcode-release.json -w '%{http_code}' \
-              -X POST "${api}/releases" \
-              -H "$auth_header" \
-              -H "Content-Type: application/json" \
-              -d "$create_payload")
-            require_success "$status" "GitCode release create" /tmp/gitcode-release.json
-            require_release_tag /tmp/gitcode-release.json
-          else
-            echo "GitCode release lookup failed with HTTP ${status}:"
-            cat /tmp/gitcode-release.json
-            exit 1
-          fi
-
-          jq -c '
-            [.assets[]?, .attach_files[]?, .attachFiles[]?, .files[]?]
-            | map(select((.name // .filename // .file_name // "") | test("_windows_")))
-            | .[]
-          ' /tmp/gitcode-release.json | while IFS= read -r asset; do
-            stale_name=$(echo "$asset" | jq -r '.name // .filename // .file_name // empty')
-            stale_id=$(echo "$asset" | jq -r '.id // empty')
-            [ -n "$stale_name" ] || continue
-            [ -n "$stale_id" ] || continue
-            delete_gitcode_asset "$stale_name" "$stale_id"
-          done
-
-          for file in /tmp/fileshare-release-assets/*; do
-            [ -f "$file" ] || continue
-            filename=$(basename "$file")
-            existing_name=$(jq -r --arg name "$filename" '
-              [.assets[]?, .attach_files[]?, .attachFiles[]?, .files[]?]
-              | map(select((.name // .filename // .file_name) == $name))[0]
-              | (.name // .filename // .file_name // empty)
-            ' /tmp/gitcode-release.json)
-            existing_id=$(jq -r --arg name "$filename" '
-              [.assets[]?, .attach_files[]?, .attachFiles[]?, .files[]?]
-              | map(select((.name // .filename // .file_name) == $name))[0].id // empty
-            ' /tmp/gitcode-release.json)
-
-            if [ -n "$existing_id" ]; then
-              delete_gitcode_asset "$filename" "$existing_id"
-            elif [ -n "$existing_name" ]; then
-              echo "Skipped ${filename}: already exists on GitCode and response did not include an asset id."
-              continue
-            fi
-
-            upload_asset "$file" "$filename"
-          done
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+        with:
+          retries: 3
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const tag = process.env.RELEASE_TAG;
+            const releaseName = `${tag} 🚀`;
+            const expectedAssets = fs.readdirSync('dist')
+              .filter((name) =>
+                name === 'checksums.txt' ||
+                (name.startsWith('fileshare-server_') && name.endsWith('.tar.gz')),
+              )
+              .sort();
+
+            if (expectedAssets.length !== 5 || !expectedAssets.includes('checksums.txt')) {
+              core.setFailed(
+                `Expected four archives and checksums.txt, found: ${expectedAssets.join(', ')}`,
+              );
+              return;
+            }
+
+            const releases = await github.paginate(
+              github.rest.repos.listReleases,
+              { ...context.repo, per_page: 100 },
+            );
+            const candidates = releases.filter((release) =>
+              release.tag_name === tag ||
+              (release.draft && (release.name === tag || release.name === releaseName)),
+            );
+            const byOldest = [...candidates].sort((left, right) => left.id - right.id);
+            let release =
+              candidates.find((item) => item.tag_name === tag && !item.draft) ||
+              byOldest.find((item) => item.tag_name === tag && item.name === releaseName) ||
+              byOldest[0];
+
+            for (const duplicate of candidates) {
+              if (!release || duplicate.id === release.id) {
+                continue;
+              }
+              if (!duplicate.draft) {
+                core.setFailed(`Multiple published releases refer to ${tag}.`);
+                return;
+              }
+              core.info(`Deleting duplicate draft Release ${duplicate.id}.`);
+              await github.rest.repos.deleteRelease({
+                ...context.repo,
+                release_id: duplicate.id,
+              });
+            }
+
+            if (!release) {
+              core.info(`Creating draft GitHub Release for ${tag}.`);
+              const created = await github.rest.repos.createRelease({
+                ...context.repo,
+                tag_name: tag,
+                name: releaseName,
+                body: `Automated release ${tag}`,
+                draft: true,
+                prerelease: false,
+              });
+              release = created.data;
+            } else {
+              core.info(`Reusing GitHub Release ${release.id} for ${tag}.`);
+            }
+
+            const existingAssets = await github.paginate(
+              github.rest.repos.listReleaseAssets,
+              { ...context.repo, release_id: release.id, per_page: 100 },
+            );
+            for (const asset of existingAssets) {
+              const generatedAsset =
+                asset.name === 'checksums.txt' ||
+                (asset.name.startsWith('fileshare-server_') && asset.name.endsWith('.tar.gz'));
+              if (!generatedAsset) {
+                continue;
+              }
+              core.info(`Deleting stale asset ${asset.name}.`);
+              await github.rest.repos.deleteReleaseAsset({
+                ...context.repo,
+                asset_id: asset.id,
+              });
+            }
+
+            for (const name of expectedAssets) {
+              const data = fs.readFileSync(path.join('dist', name));
+              core.info(`Uploading ${name}.`);
+              await github.rest.repos.uploadReleaseAsset({
+                ...context.repo,
+                release_id: release.id,
+                name,
+                headers: {
+                  'content-type': 'application/octet-stream',
+                  'content-length': data.length,
+                },
+                data,
+              });
+            }
+
+            await github.rest.repos.updateRelease({
+              ...context.repo,
+              release_id: release.id,
+              tag_name: tag,
+              name: releaseName,
+              body: release.body || `Automated release ${tag}`,
+              draft: false,
+              prerelease: false,
+              make_latest: 'true',
+            });
+            core.info(`Published GitHub Release ${tag} with ${expectedAssets.length} assets.`);

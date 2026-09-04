@@ -1,3 +1,5 @@
+简体中文 | [English](README.en.md)
+
 <div align="center"><img src="frontend/public/logo.png" alt="File Share Manager" width="180" /></div>
 
 <p align="center">
@@ -165,14 +167,9 @@
 
 | 文档 | 内容 |
 | --- | --- |
-| [产品需求](docs/PRD.md) | 产品目标、角色、场景、功能边界和验收口径 |
-| [设计说明](docs/DESIGN.md) | 核心设计、数据模型、接口草案和安全约束 |
 | [运行时架构](docs/架构/runtime-architecture.md) | 运行单元、请求链路、后台 Worker、数据和对象边界 |
 | [可交互架构图](docs/架构/runtime-architecture.html) | Archify 生成的独立 HTML 架构图 |
 | [生产发布与回滚](docs/PRODUCTION_RUNBOOK.md) | 生产前置、迁移、Secret、监控、回滚和仍需确认事项 |
-| [实现路线图](docs/IMPLEMENTATION_ROADMAP.md) | 功能开发路线、里程碑和后续任务 |
-| [体验 Backlog](docs/USER_EXPERIENCE_BACKLOG.md) | 用户体验优化项 |
-| [TODO](docs/TODO.md) | 待办事项 |
 | [Frontend 文档](frontend/README.md) | 前端运行、构建、请求和权限约定 |
 | [贡献者指南](CONTRIBUTING.md) | 开发流程、提交规范和检查项 |
 | [变更日志](CHANGELOG.md) | 版本演进和未发布变更 |

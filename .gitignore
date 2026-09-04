@@ -53,6 +53,8 @@ testdata/
 docs/
 !server/docs/
 !server/docs/**
+!.cnb/scripts/
+!.cnb/scripts/sync-release.sh
 push.sh
 
 # Local temp

@@ -438,11 +438,19 @@ func (dao *NodeDAO) ListTrashRoots(workspaceID uint) ([]model.Node, error) {
 	return nodes, err
 }
 
+type TrashPurgeResult struct {
+	Versions        []model.FileVersion
+	UploadIDs       []string
+	BatchArchiveIDs []string
+}
+
 // PurgeExpiredTrash permanently removes eligible trash subtrees and returns
-// their object keys for deletion from the storage adapter. Active share
-// snapshots keep a subtree alive until their own expiry.
-func (dao *NodeDAO) PurgeExpiredTrash(cutoff, now time.Time) ([]model.FileVersion, error) {
-	var removedVersions []model.FileVersion
+// storage artifacts that must be removed after the transaction commits.
+// Active shares and batch-download snapshots keep their source subtree alive.
+func (dao *NodeDAO) PurgeExpiredTrash(cutoff, now time.Time) (TrashPurgeResult, error) {
+	result := TrashPurgeResult{
+		Versions: []model.FileVersion{}, UploadIDs: []string{}, BatchArchiveIDs: []string{},
+	}
 	err := dao.db.Transaction(func(tx *gorm.DB) error {
 		var roots []model.Node
 		if err := tx.Where("status = ? AND trashed_at IS NOT NULL AND trashed_at <= ?", "trashed", cutoff).
@@ -452,14 +460,19 @@ func (dao *NodeDAO) PurgeExpiredTrash(cutoff, now time.Time) ([]model.FileVersio
 		}
 		for _, root := range roots {
 			var nodeIDs []uint
-			if err := tx.Model(&model.NodeClosure{}).Where("ancestor_id = ?", root.ID).Pluck("descendant_id", &nodeIDs).Error; err != nil {
+			if err := tx.Table("node_closures").
+				Select("node_closures.descendant_id").
+				Joins("JOIN nodes ON nodes.id = node_closures.descendant_id").
+				Where("node_closures.ancestor_id = ? AND nodes.workspace_id = ?", root.ID, root.WorkspaceID).
+				Order("node_closures.depth DESC, node_closures.descendant_id ASC").
+				Pluck("node_closures.descendant_id", &nodeIDs).Error; err != nil {
 				return err
 			}
 			if len(nodeIDs) == 0 {
 				nodeIDs = []uint{root.ID}
 			}
 			var versions []model.FileVersion
-			if err := tx.Where("node_id IN ?", nodeIDs).Find(&versions).Error; err != nil {
+			if err := tx.Where("workspace_id = ? AND node_id IN ?", root.WorkspaceID, nodeIDs).Find(&versions).Error; err != nil {
 				return err
 			}
 			keys := make([]string, 0, len(versions))
@@ -470,30 +483,69 @@ func (dao *NodeDAO) PurgeExpiredTrash(cutoff, now time.Time) ([]model.FileVersio
 				totalSize += version.Size
 				sizeByUser[version.CreatedBy] += version.Size
 			}
-			var retained []string
+			var retainedShares int64
+			if err := tx.Model(&model.Share{}).
+				Where("workspace_id = ? AND source_node_id IN ?", root.WorkspaceID, nodeIDs).
+				Where("status = ? AND expires_at > ? AND (max_downloads IS NULL OR download_count < max_downloads)", "active", now).
+				Count(&retainedShares).Error; err != nil {
+				return err
+			}
+			var retainedObjects []string
 			if len(keys) > 0 {
 				if err := tx.Table("share_items").
 					Select("share_items.storage_key").
 					Joins("JOIN shares ON shares.id = share_items.share_id").
-					Where("share_items.storage_key IN ? AND shares.status = ? AND shares.expires_at > ?", keys, "active", now).
-					Pluck("share_items.storage_key", &retained).Error; err != nil {
+					Where("shares.workspace_id = ? AND share_items.storage_key IN ?", root.WorkspaceID, keys).
+					Where("shares.status = ? AND shares.expires_at > ? AND (shares.max_downloads IS NULL OR shares.download_count < shares.max_downloads)", "active", now).
+					Pluck("share_items.storage_key", &retainedObjects).Error; err != nil {
 					return err
 				}
 			}
-			if len(retained) > 0 {
-				continue
-			}
-			removedVersions = append(removedVersions, versions...)
-			if err := tx.Where("node_id IN ?", nodeIDs).Delete(&model.FileVersion{}).Error; err != nil {
+			var retainedBatchJobs int64
+			if err := tx.Table("batch_download_items AS items").
+				Joins("JOIN batch_download_jobs AS jobs ON jobs.id = items.job_id").
+				Where("jobs.workspace_id = ? AND items.node_id IN ?", root.WorkspaceID, nodeIDs).
+				Where("jobs.status IN ? OR (jobs.status = ? AND (jobs.expires_at IS NULL OR jobs.expires_at > ?))", []string{"queued", "running", "failed"}, "completed", now).
+				Count(&retainedBatchJobs).Error; err != nil {
 				return err
 			}
-			if err := tx.Where("node_id IN ?", nodeIDs).Delete(&model.Favorite{}).Error; err != nil {
+			if retainedShares > 0 || len(retainedObjects) > 0 || retainedBatchJobs > 0 {
+				continue
+			}
+
+			uploadIDs, err := purgeNodeUploadSessions(tx, root.WorkspaceID, nodeIDs)
+			if err != nil {
+				return err
+			}
+			result.UploadIDs = append(result.UploadIDs, uploadIDs...)
+			batchArchiveIDs, err := purgeNodeBatchDownloads(tx, root.WorkspaceID, nodeIDs, now)
+			if err != nil {
+				return err
+			}
+			result.BatchArchiveIDs = append(result.BatchArchiveIDs, batchArchiveIDs...)
+			if err := purgeNodeShares(tx, root.WorkspaceID, nodeIDs, keys, now); err != nil {
+				return err
+			}
+			if err := purgeNodeComments(tx, root.WorkspaceID, nodeIDs); err != nil {
+				return err
+			}
+			if err := tx.Where("workspace_id = ? AND node_id IN ?", root.WorkspaceID, nodeIDs).Delete(&model.NodeACL{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("workspace_id = ? AND node_id IN ?", root.WorkspaceID, nodeIDs).Delete(&model.RecentNodeAccess{}).Error; err != nil {
+				return err
+			}
+			result.Versions = append(result.Versions, versions...)
+			if err := tx.Where("workspace_id = ? AND node_id IN ?", root.WorkspaceID, nodeIDs).Delete(&model.FileVersion{}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("workspace_id = ? AND node_id IN ?", root.WorkspaceID, nodeIDs).Delete(&model.Favorite{}).Error; err != nil {
 				return err
 			}
 			if err := tx.Where("ancestor_id IN ? OR descendant_id IN ?", nodeIDs, nodeIDs).Delete(&model.NodeClosure{}).Error; err != nil {
 				return err
 			}
-			if err := tx.Where("id IN ?", nodeIDs).Delete(&model.Node{}).Error; err != nil {
+			if err := tx.Where("workspace_id = ? AND id IN ?", root.WorkspaceID, nodeIDs).Delete(&model.Node{}).Error; err != nil {
 				return err
 			}
 			if err := tx.Model(&model.Workspace{}).Where("id = ?", root.WorkspaceID).
@@ -507,13 +559,101 @@ func (dao *NodeDAO) PurgeExpiredTrash(cutoff, now time.Time) ([]model.FileVersio
 					return err
 				}
 			}
-			if err := appendChange(tx, root.WorkspaceID, "node", root.ID, "purge_subtree", map[string]any{"node_ids": nodeIDs}); err != nil {
+			if err := appendChange(tx, root.WorkspaceID, "node", root.ID, "purge_subtree", map[string]any{
+				"node_ids": nodeIDs, "upload_ids": uploadIDs, "batch_archive_ids": batchArchiveIDs,
+			}); err != nil {
 				return err
 			}
 		}
 		return nil
 	})
-	return removedVersions, err
+	return result, err
+}
+
+func purgeNodeUploadSessions(tx *gorm.DB, workspaceID uint, nodeIDs []uint) ([]string, error) {
+	var sessions []model.UploadSession
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("workspace_id = ? AND (node_id IN ? OR target_parent_id IN ?)", workspaceID, nodeIDs, nodeIDs).
+		Find(&sessions).Error; err != nil {
+		return nil, err
+	}
+	ids := make([]string, 0, len(sessions))
+	for _, session := range sessions {
+		ids = append(ids, session.ID)
+		if session.Status == "completed" || session.Status == "expired" {
+			continue
+		}
+		if err := releaseQuota(tx, workspaceID, session.CreatedBy, session.TotalSize); err != nil {
+			return nil, err
+		}
+	}
+	if len(ids) > 0 {
+		if err := tx.Where("workspace_id = ? AND id IN ?", workspaceID, ids).Delete(&model.UploadSession{}).Error; err != nil {
+			return nil, err
+		}
+	}
+	return ids, nil
+}
+
+func purgeNodeBatchDownloads(tx *gorm.DB, workspaceID uint, nodeIDs []uint, now time.Time) ([]string, error) {
+	var jobIDs []string
+	if err := tx.Table("batch_download_items AS items").
+		Distinct("items.job_id").
+		Joins("JOIN batch_download_jobs AS jobs ON jobs.id = items.job_id").
+		Where("jobs.workspace_id = ? AND items.node_id IN ?", workspaceID, nodeIDs).
+		Pluck("items.job_id", &jobIDs).Error; err != nil {
+		return nil, err
+	}
+	if len(jobIDs) == 0 {
+		return []string{}, nil
+	}
+	if err := tx.Where("job_id IN ?", jobIDs).Delete(&model.BatchDownloadItem{}).Error; err != nil {
+		return nil, err
+	}
+	if err := tx.Model(&model.BatchDownloadJob{}).
+		Where("workspace_id = ? AND id IN ?", workspaceID, jobIDs).
+		Updates(map[string]any{"status": "expired", "archive_size": 0, "updated_at": now}).Error; err != nil {
+		return nil, err
+	}
+	return jobIDs, nil
+}
+
+func purgeNodeShares(tx *gorm.DB, workspaceID uint, nodeIDs []uint, storageKeys []string, now time.Time) error {
+	obsolete := tx.Model(&model.Share{}).
+		Select("id").
+		Where("workspace_id = ?", workspaceID).
+		Where("status <> ? OR expires_at <= ? OR (max_downloads IS NOT NULL AND download_count >= max_downloads)", "active", now)
+	if len(storageKeys) > 0 {
+		if err := tx.Where("share_id IN (?) AND storage_key IN ?", obsolete, storageKeys).Delete(&model.ShareItem{}).Error; err != nil {
+			return err
+		}
+	}
+	var sourceShareIDs []uint
+	if err := obsolete.Where("source_node_id IN ?", nodeIDs).Pluck("id", &sourceShareIDs).Error; err != nil {
+		return err
+	}
+	if len(sourceShareIDs) == 0 {
+		return nil
+	}
+	if err := tx.Where("share_id IN ?", sourceShareIDs).Delete(&model.ShareItem{}).Error; err != nil {
+		return err
+	}
+	return tx.Where("workspace_id = ? AND id IN ?", workspaceID, sourceShareIDs).Delete(&model.Share{}).Error
+}
+
+func purgeNodeComments(tx *gorm.DB, workspaceID uint, nodeIDs []uint) error {
+	var commentIDs []uint
+	if err := tx.Model(&model.NodeComment{}).
+		Where("workspace_id = ? AND node_id IN ?", workspaceID, nodeIDs).
+		Pluck("id", &commentIDs).Error; err != nil {
+		return err
+	}
+	if len(commentIDs) > 0 {
+		if err := tx.Where("comment_id IN ?", commentIDs).Delete(&model.NodeCommentMention{}).Error; err != nil {
+			return err
+		}
+	}
+	return tx.Where("workspace_id = ? AND node_id IN ?", workspaceID, nodeIDs).Delete(&model.NodeComment{}).Error
 }
 
 func (dao *NodeDAO) SearchActive(workspaceID uint, filter NodeSearchFilter) ([]model.Node, error) {
