@@ -34,6 +34,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -51,6 +52,7 @@ import (
 	"file-share-manager/server/internal/service/backup"
 	"file-share-manager/server/internal/service/batchdownload"
 	"file-share-manager/server/internal/service/clamav"
+	ldapservice "file-share-manager/server/internal/service/ldap"
 	"file-share-manager/server/internal/service/ldapsync"
 	"file-share-manager/server/internal/service/lifecycle"
 	"file-share-manager/server/internal/service/notification"
@@ -97,6 +99,9 @@ func main() {
 		}
 	} else if err := migration.VerifyCurrent(database.DB); err != nil {
 		logger.Fatalf("database schema is not ready for release %s: %v", migration.CurrentVersion, err)
+	}
+	if err := validateLDAPStartupConfig(); err != nil {
+		logger.Fatalf("LDAP security configuration is invalid: %v", err)
 	}
 	if err := ensureBootstrapAdmin(); err != nil {
 		logger.Fatalf("initialize bootstrap administrator: %v", err)
@@ -191,6 +196,25 @@ func main() {
 		}
 	}
 	logger.Info("server_exited")
+}
+
+func validateLDAPStartupConfig() error {
+	ldapConfig, err := dao.NewLDAPConfigDAO().Get()
+	if err != nil {
+		return err
+	}
+	if ldapConfig == nil || ldapConfig.Status != 1 {
+		return nil
+	}
+	runtimeConfig := dao.LDAPRuntimeConfig(ldapConfig)
+	if !runtimeConfig.Enabled() || strings.TrimSpace(runtimeConfig.AdminDN) == "" || strings.TrimSpace(runtimeConfig.Password) == "" {
+		return errors.New("enabled LDAP requires host, base DN, administrator DN and encrypted password")
+	}
+	allowPlaintext := true
+	if cfg := config.GetConfig(); cfg != nil {
+		allowPlaintext = cfg.Server.Mode != "release"
+	}
+	return ldapservice.ValidateConfig(runtimeConfig, allowPlaintext)
 }
 
 func autoMigrate() error {

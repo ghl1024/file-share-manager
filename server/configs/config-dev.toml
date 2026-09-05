@@ -65,6 +65,12 @@
   secret = "fileshare-development-jwt-secret-change-me"
   expires_hours = 24
 
+[ldap_security]
+  # 通过 FILESHARE_LDAP_CREDENTIAL_KEY 注入 Base64 编码的 32 字节密钥；启用 LDAP 后必须配置。
+  credential_encryption_key = ""
+  # 密钥轮换期间临时保留旧密钥，运行时会同时尝试当前和旧密钥。
+  previous_credential_encryption_key = ""
+
 [backup]
 type = "local"
 local_path = "data/backup"

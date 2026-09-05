@@ -304,7 +304,7 @@ docker compose down --volumes
 
 1. 准备 MySQL 8，并为迁移、业务请求和审计归档规划独立账号。
 2. 准备主存储、暂存目录和备份目录，使用绝对路径并确认支持原子 rename、稳定 fsync 和 POSIX 权限。
-3. 通过 Secret 系统注入 `FILESHARE_DB_PASSWORD`、`FILESHARE_JWT_SECRET`、`FILESHARE_BACKUP_MANIFEST_KEY` 和首次启动用的 `FILESHARE_BOOTSTRAP_ADMIN_PASSWORD`。
+3. 通过 Secret 系统注入 `FILESHARE_DB_PASSWORD`、`FILESHARE_JWT_SECRET`、`FILESHARE_BACKUP_MANIFEST_KEY`；启用 LDAP 时同时注入 `FILESHARE_LDAP_CREDENTIAL_KEY`，首次启动再临时提供 `FILESHARE_BOOTSTRAP_ADMIN_PASSWORD`。
 4. 执行版本化 migration，再执行 `--verify`。
 5. 启动 Server，检查 `/healthz` 和 `/readyz`。
 6. 将 Frontend 构建产物发布到 Nginx，以 `/fileshare/` 提供 History fallback，并把 `/api/` 代理到 Server。
@@ -316,6 +316,10 @@ docker compose down --volumes
 cd server
 FILESHARE_DB_PASSWORD='...' FILESHARE_JWT_SECRET='...' FILESHARE_BACKUP_MANIFEST_KEY='...' \
   go run ./cmd/migrate --config configs/config-prod.toml
+
+# 如果数据库已有旧版明文 LDAP 配置，迁移前必须额外注入 LDAP 加密密钥。
+FILESHARE_DB_PASSWORD='...' FILESHARE_JWT_SECRET='...' FILESHARE_BACKUP_MANIFEST_KEY='...' \
+FILESHARE_LDAP_CREDENTIAL_KEY='...' go run ./cmd/migrate --config configs/config-prod.toml
 
 FILESHARE_DB_PASSWORD='...' FILESHARE_JWT_SECRET='...' FILESHARE_BACKUP_MANIFEST_KEY='...' \
   go run ./cmd/migrate --config configs/config-prod.toml --verify
@@ -385,11 +389,13 @@ make frontend-build
 
 ### 8.1 安全与会话
 
-- API 前缀为 `/api/fileshare/v1/`。
+- API 前缀为 `/api/fileshare/v1/`。Compose 保留 `29000` 端口映射用于本地诊断，但默认只绑定 `127.0.0.1`；需要其他受控网络访问时显式设置 `FILESHARE_API_BIND_ADDRESS` 并配合主机防火墙。
 - 会话使用 `fileshare_session` HttpOnly Cookie，前端不读取或持久化 JWT。
 - Cookie 写请求必须带 `X-Requested-With: XMLHttpRequest`。
 - Gin 默认不信任任何代理转发头；部署在反向代理后时，通过 `FILESHARE_TRUSTED_PROXIES` 注入精确的代理 IP/CIDR，多个值以逗号分隔。不要配置为任意地址段。
 - JWT Secret 至少使用 32 字节随机值，示例：`openssl rand -base64 48`。
+- LDAP 管理员密码以 AES-256-GCM 信封加密后保存到数据库，密钥使用 `FILESHARE_LDAP_CREDENTIAL_KEY` 注入，生成方式为 `openssl rand -base64 32`，禁止把密钥或密码写入 TOML、镜像或 Git。
+- LDAP 传输模式支持 `starttls` 和 `ldaps`；生产模式拒绝 `plain`。可配置自定义 PEM CA、TLS 服务器名和最低 TLS 版本（1.2/1.3）。密钥轮换时同时注入 `FILESHARE_LDAP_PREVIOUS_CREDENTIAL_KEY`，重新保存 LDAP 配置后再移除旧密钥。
 - 生产配置关闭 `database.auto_migrate`，必须使用独立 migration 流程。
 
 ### 8.2 Swagger API 文档
@@ -405,7 +411,7 @@ make frontend-build
 - 上传扩展名白名单由 `[upload].allowed_extensions` 或 `FILESHARE_ALLOWED_EXTENSIONS` 控制。
 - 单文件大小由 `[upload].max_file_bytes` 或 `FILESHARE_UPLOAD_MAX_FILE_BYTES` 控制，默认 100 GiB，允许范围为 1 MiB 到 1 TiB。
 - 分片大小必须在 1 MiB 到 64 MiB 之间；系统同时限制单个上传会话最多 1,048,576 个分片。
-- 修改上传会话约束后，生产环境必须先执行版本化 migration，再启动 Server。
+- 修改上传会话约束后，生产环境必须先执行版本化 migration，再启动 Server；代理层上传请求体上限默认与后端的 110 MiB 保持一致，可通过 `FILESHARE_MAX_UPLOAD_BODY_BYTES` 同时调整。
 - 默认校验常见格式 Magic Number、Office 压缩包结构、VBA 宏扩展名一致性，以及 ZIP 条目数、解压大小、压缩比、嵌套层数和路径安全。
 - 只有明确设置 `allow_mime_mismatch = true` 才跳过基础内容与扩展名匹配检查，ZIP 结构安全检查始终执行。
 - 分享链接会冻结文件版本或目录快照；原始 token 只在创建成功响应中返回。

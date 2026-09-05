@@ -62,6 +62,12 @@
   secret = ""
   expires_hours = 24
 
+[ldap_security]
+  # 通过 FILESHARE_LDAP_CREDENTIAL_KEY 注入 Base64 编码的 32 字节密钥，禁止写入生产配置文件。
+  credential_encryption_key = ""
+  # 密钥轮换期间临时注入旧密钥，完成重新保存配置后移除。
+  previous_credential_encryption_key = ""
+
 [backup]
 type = "local"
 local_path = "/data/fileshare/backup"

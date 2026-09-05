@@ -32,6 +32,8 @@ func NewLDAPConfigDAO() *LDAPConfigDAO {
 func DefaultLDAPConfig() *model.LDAPConfig {
 	return &model.LDAPConfig{
 		Port:             389,
+		Transport:        "starttls",
+		TLSMinVersion:    "1.2",
 		UserFilter:       "(&(objectClass=user)(sAMAccountName=*))",
 		UsernameAttr:     "sAMAccountName",
 		EmailAttr:        "mail",
@@ -54,6 +56,16 @@ func (dao *LDAPConfigDAO) Get() (*model.LDAPConfig, error) {
 		}
 		return nil, err
 	}
+	if strings.TrimSpace(cfg.PasswordCiphertext) != "" {
+		password, decryptErr := ldapservice.DecryptPassword(cfg.PasswordCiphertext)
+		if decryptErr != nil {
+			if cfg.Status == 1 || !errors.Is(decryptErr, ldapservice.ErrCredentialKeyMissing) {
+				return nil, decryptErr
+			}
+		} else {
+			cfg.Password = password
+		}
+	}
 	applyLDAPDefaults(&cfg)
 	return &cfg, nil
 }
@@ -63,12 +75,23 @@ func (dao *LDAPConfigDAO) Save(cfg *model.LDAPConfig) error {
 }
 
 func (dao *LDAPConfigDAO) SaveWithAudit(cfg *model.LDAPConfig, event *model.OperationLog) error {
+	if cfg == nil {
+		return errors.New("LDAP 配置不能为空")
+	}
 	applyLDAPDefaults(cfg)
 	return dao.db.Transaction(func(tx *gorm.DB) error {
 		var existing model.LDAPConfig
 		err := tx.Order("id ASC").First(&existing).Error
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if cfg.Status == 1 && strings.TrimSpace(cfg.Password) == "" {
+					return errors.New("启用 LDAP 时管理员密码不能为空")
+				}
+				ciphertext, encryptErr := ldapservice.EncryptPassword(cfg.Password)
+				if encryptErr != nil {
+					return encryptErr
+				}
+				cfg.PasswordCiphertext = ciphertext
 				if err := tx.Create(cfg).Error; err != nil {
 					return err
 				}
@@ -82,6 +105,30 @@ func (dao *LDAPConfigDAO) SaveWithAudit(cfg *model.LDAPConfig, event *model.Oper
 		before := ldapAuditSnapshot(&existing)
 		cfg.ID = existing.ID
 		cfg.CreatedAt = existing.CreatedAt
+		if strings.TrimSpace(cfg.Password) == "" {
+			cfg.Password = existing.Password
+			if cfg.Status == 0 {
+				cfg.PasswordCiphertext = existing.PasswordCiphertext
+			} else if strings.TrimSpace(cfg.Password) == "" && strings.TrimSpace(existing.PasswordCiphertext) != "" {
+				password, decryptErr := ldapservice.DecryptPassword(existing.PasswordCiphertext)
+				if decryptErr != nil {
+					return decryptErr
+				}
+				cfg.Password = password
+			}
+		}
+		if strings.TrimSpace(cfg.Password) != "" {
+			ciphertext, encryptErr := ldapservice.EncryptPassword(cfg.Password)
+			if encryptErr != nil {
+				return encryptErr
+			}
+			cfg.PasswordCiphertext = ciphertext
+		} else {
+			if cfg.Status == 1 && strings.TrimSpace(existing.PasswordCiphertext) == "" {
+				return errors.New("启用 LDAP 时管理员密码不能为空")
+			}
+			cfg.PasswordCiphertext = existing.PasswordCiphertext
+		}
 		if err := tx.Save(cfg).Error; err != nil {
 			return err
 		}
@@ -98,12 +145,14 @@ func ldapAuditSnapshot(cfg *model.LDAPConfig) map[string]any {
 	}
 	return map[string]any{
 		"id": cfg.ID, "host": cfg.Host, "port": cfg.Port, "admin_dn": cfg.AdminDN,
+		"transport": cfg.Transport, "tls_ca_configured": strings.TrimSpace(cfg.TLSCA) != "",
+		"tls_server_name": cfg.TLSServerName, "tls_min_version": cfg.TLSMinVersion,
 		"base_dn": cfg.BaseDN, "user_filter": cfg.UserFilter, "username_attr": cfg.UsernameAttr,
 		"email_attr": cfg.EmailAttr, "real_name_attr": cfg.RealNameAttr, "sync_cron": cfg.SyncCron,
 		"sync_workspace_id": cfg.SyncWorkspaceID, "group_sync_enabled": cfg.GroupSyncEnabled,
 		"group_base_dn": cfg.GroupBaseDN, "group_filter": cfg.GroupFilter,
 		"group_name_attr": cfg.GroupNameAttr, "group_member_attr": cfg.GroupMemberAttr,
-		"status": cfg.Status, "password_configured": strings.TrimSpace(cfg.Password) != "",
+		"status": cfg.Status, "password_configured": strings.TrimSpace(cfg.Password) != "" || strings.TrimSpace(cfg.PasswordCiphertext) != "",
 	}
 }
 
@@ -125,6 +174,10 @@ func LDAPRuntimeConfig(cfg *model.LDAPConfig) ldapservice.Config {
 		Port:            cfg.Port,
 		AdminDN:         strings.TrimSpace(cfg.AdminDN),
 		Password:        cfg.Password,
+		Transport:       strings.TrimSpace(cfg.Transport),
+		TLSCA:           cfg.TLSCA,
+		TLSServerName:   strings.TrimSpace(cfg.TLSServerName),
+		TLSMinVersion:   strings.TrimSpace(cfg.TLSMinVersion),
 		BaseDN:          strings.TrimSpace(cfg.BaseDN),
 		UserFilter:      strings.TrimSpace(cfg.UserFilter),
 		UsernameAttr:    strings.TrimSpace(cfg.UsernameAttr),
@@ -149,6 +202,18 @@ func applyLDAPDefaults(cfg *model.LDAPConfig) {
 	cfg.GroupFilter = strings.TrimSpace(cfg.GroupFilter)
 	cfg.GroupNameAttr = strings.TrimSpace(cfg.GroupNameAttr)
 	cfg.GroupMemberAttr = strings.TrimSpace(cfg.GroupMemberAttr)
+	cfg.Transport = strings.ToLower(strings.TrimSpace(cfg.Transport))
+	if cfg.Transport == "" {
+		cfg.Transport = "starttls"
+		if strings.HasPrefix(strings.ToLower(cfg.Host), "ldaps://") {
+			cfg.Transport = "ldaps"
+		}
+	}
+	cfg.TLSCA = strings.TrimSpace(cfg.TLSCA)
+	cfg.TLSServerName = strings.TrimSpace(cfg.TLSServerName)
+	if cfg.TLSMinVersion == "" {
+		cfg.TLSMinVersion = "1.2"
+	}
 	if cfg.Port <= 0 {
 		cfg.Port = 389
 	}

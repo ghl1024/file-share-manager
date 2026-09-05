@@ -12,6 +12,7 @@ package request
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -98,6 +99,34 @@ func TestBindJSONReturnsValidationDetails(t *testing.T) {
 		t.Fatal(err)
 	}
 	if body.Code != 400 || body.Message != "请求参数校验失败" || len(body.Details) != 1 || body.Details[0].Field != "display_name" {
+		t.Fatalf("unexpected response: %+v", body)
+	}
+}
+
+func TestBindJSONMapsMaxBytesErrorToPayloadTooLarge(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/items", strings.NewReader(`{"name":"large"}`))
+	c.Request.Header.Set("Content-Type", "application/json")
+	c.Request.Body = http.MaxBytesReader(recorder, c.Request.Body, 4)
+
+	if BindJSON(c, &struct {
+		Name string `json:"name"`
+	}{}) {
+		t.Fatal("expected max bytes body to fail")
+	}
+	if recorder.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusRequestEntityTooLarge)
+	}
+	var body struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body.Code != http.StatusRequestEntityTooLarge || body.Message != "请求体超过系统限制" {
 		t.Fatalf("unexpected response: %+v", body)
 	}
 }

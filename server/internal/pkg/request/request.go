@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
@@ -36,7 +37,10 @@ type FieldError struct {
 // 400 response itself so handlers cannot drift in binding error semantics.
 func BindJSON(c *gin.Context, destination any) bool {
 	if err := c.ShouldBindJSON(destination); err != nil {
-		if details := bindingDetails(err, destination); len(details) > 0 {
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			response.PayloadTooLarge(c, "请求体超过系统限制")
+		} else if details := bindingDetails(err, destination); len(details) > 0 {
 			response.BadRequestWithDetails(c, "请求参数校验失败", details)
 		} else if errors.Is(err, io.EOF) {
 			response.BadRequest(c, "请求体不能为空")

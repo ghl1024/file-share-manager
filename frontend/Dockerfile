@@ -35,7 +35,7 @@ ENV FILESHARE_GIT_COMMIT=${GIT_COMMIT}
 ENV FILESHARE_BUILD_TIME=${BUILD_TIME}
 
 # 拷贝自定义 Nginx 配置
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 # 拷贝构建好的前端静态文件
 COPY --from=builder /app/dist /usr/share/nginx/html

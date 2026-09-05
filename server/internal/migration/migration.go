@@ -12,9 +12,11 @@ package migration
 
 import (
 	"fmt"
+	"strings"
 
 	"file-share-manager/server/internal/dao"
 	"file-share-manager/server/internal/model"
+	ldapservice "file-share-manager/server/internal/service/ldap"
 
 	"gorm.io/gorm"
 )
@@ -22,10 +24,16 @@ import (
 // Run is the single schema definition used by development auto-migration and
 // the explicit production migration command.
 func Run(db *gorm.DB) error {
+	if err := migrateLDAPPasswordColumn(db); err != nil {
+		return err
+	}
 	if err := migrateUserGroupLDAPDNColumn(db); err != nil {
 		return err
 	}
 	if err := db.AutoMigrate(schemaModels()...); err != nil {
+		return err
+	}
+	if err := migrateLDAPTransport(db); err != nil {
 		return err
 	}
 	if err := ensureNodeSearchIndexes(db); err != nil {
@@ -35,6 +43,58 @@ func Run(db *gorm.DB) error {
 		return err
 	}
 	return dao.EnsureAuditStreams(db)
+}
+
+func migrateLDAPTransport(db *gorm.DB) error {
+	if !db.Migrator().HasTable(&model.LDAPConfig{}) || !db.Migrator().HasColumn(&model.LDAPConfig{}, "transport") {
+		return nil
+	}
+	// Older releases encoded LDAPS in the host field. Preserve that intent when
+	// the new explicit transport column receives its default value.
+	return db.Exec("UPDATE ldap_configs SET transport = 'ldaps' WHERE LOWER(TRIM(host)) LIKE 'ldaps://%' AND (transport = '' OR transport = 'starttls')").Error
+}
+
+func migrateLDAPPasswordColumn(db *gorm.DB) error {
+	migrator := db.Migrator()
+	if !migrator.HasTable(&model.LDAPConfig{}) {
+		return nil
+	}
+	if !migrator.HasColumn(&model.LDAPConfig{}, "password_ciphertext") {
+		if err := db.Exec("ALTER TABLE ldap_configs ADD COLUMN password_ciphertext VARCHAR(1024) NOT NULL DEFAULT ''").Error; err != nil {
+			return fmt.Errorf("add LDAP credential ciphertext column: %w", err)
+		}
+	}
+	var legacyColumnCount int64
+	if err := db.Raw(`SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ldap_configs' AND COLUMN_NAME = 'password'`).Scan(&legacyColumnCount).Error; err != nil {
+		return fmt.Errorf("check legacy LDAP credential column: %w", err)
+	}
+	if legacyColumnCount == 0 {
+		return nil
+	}
+	var rows []struct {
+		ID                 uint
+		Password           string
+		PasswordCiphertext string
+	}
+	if err := db.Table("ldap_configs").Select("id, password, password_ciphertext").Find(&rows).Error; err != nil {
+		return fmt.Errorf("read legacy LDAP credentials: %w", err)
+	}
+	for _, row := range rows {
+		if strings.TrimSpace(row.Password) == "" || strings.TrimSpace(row.PasswordCiphertext) != "" {
+			continue
+		}
+		ciphertext, err := ldapservice.EncryptPassword(row.Password)
+		if err != nil {
+			return fmt.Errorf("encrypt legacy LDAP credential %d: %w", row.ID, err)
+		}
+		if err := db.Table("ldap_configs").Where("id = ?", row.ID).Update("password_ciphertext", ciphertext).Error; err != nil {
+			return fmt.Errorf("store encrypted LDAP credential %d: %w", row.ID, err)
+		}
+	}
+	if err := db.Exec("ALTER TABLE ldap_configs DROP COLUMN password").Error; err != nil {
+		return fmt.Errorf("remove legacy LDAP credential column: %w", err)
+	}
+	return nil
 }
 
 func ensureUploadSessionConstraints(db *gorm.DB) error {

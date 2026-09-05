@@ -40,6 +40,9 @@ dbname = "fileshare"
 	t.Setenv("FILESHARE_SERVER_PORT", "29100")
 	t.Setenv("FILESHARE_ENABLE_SWAGGER", "true")
 	t.Setenv("FILESHARE_DB_PASSWORD", databasePassword)
+	t.Setenv("FILESHARE_LDAP_CREDENTIAL_KEY", "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
+	t.Setenv("FILESHARE_LDAP_PREVIOUS_CREDENTIAL_KEY", "YWJjZGVmMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODk=")
+	t.Setenv("FILESHARE_MAX_UPLOAD_BODY_BYTES", "209715200")
 	t.Setenv("FILESHARE_DB_LOG_QUERIES", "true")
 	t.Setenv("FILESHARE_STORAGE_MIN_FREE_BYTES", "1073741824")
 	t.Setenv("FILESHARE_STORAGE_WARN_FREE_PERCENT", "25")
@@ -123,6 +126,12 @@ dbname = "fileshare"
 	if GetConfig().Upload.MaxFileBytes != 123456789 {
 		t.Fatalf("Upload.MaxFileBytes = %d, want 123456789", GetConfig().Upload.MaxFileBytes)
 	}
+	if GetConfig().LDAPSecurity.CredentialEncryptionKey == "" || GetConfig().LDAPSecurity.PreviousCredentialEncryptionKey == "" {
+		t.Fatalf("LDAP security key environment overrides were not applied")
+	}
+	if GetConfig().Server.MaxUploadBodyBytes != 209715200 {
+		t.Fatalf("Server.MaxUploadBodyBytes = %d, want 209715200", GetConfig().Server.MaxUploadBodyBytes)
+	}
 }
 
 func TestLoadConfigRejectsInvalidSwaggerEnvironmentValue(t *testing.T) {
@@ -145,6 +154,29 @@ dbname = "fileshare"
 	t.Setenv("FILESHARE_ENABLE_SWAGGER", "sometimes")
 	if err := LoadConfig(path); err == nil || !strings.Contains(err.Error(), "FILESHARE_ENABLE_SWAGGER") {
 		t.Fatalf("LoadConfig() error = %v, want Swagger boolean error", err)
+	}
+}
+
+func TestLoadConfigRejectsInvalidLDAPCredentialKey(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.toml")
+	content := `[server]
+port = 29000
+mode = "debug"
+web_url = "http://localhost:39000"
+
+[database]
+host = "localhost"
+port = 3306
+user = "fileshare"
+dbname = "fileshare"
+`
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("FILESHARE_LDAP_CREDENTIAL_KEY", "not-a-key")
+	if err := LoadConfig(path); err == nil || !strings.Contains(err.Error(), "ldap_security.credential_encryption_key") {
+		t.Fatalf("LoadConfig() error = %v, want LDAP credential key validation error", err)
 	}
 }
 

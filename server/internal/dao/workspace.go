@@ -6,7 +6,7 @@
 - CNB: https://cnb.cool/ghl1024/file-share-manager
 - GitCode: https://gitcode.com/haydenguo/file-share-manager
 - Author: https://hayden.pub
-*/
+ */
 
 package dao
 

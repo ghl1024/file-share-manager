@@ -9,6 +9,20 @@
 
 set -eu
 
+upload_body_bytes="${FILESHARE_MAX_UPLOAD_BODY_BYTES:-115343360}"
+case "$upload_body_bytes" in
+  ''|*[!0-9]*)
+    echo "FILESHARE_MAX_UPLOAD_BODY_BYTES must be an integer" >&2
+    exit 1
+    ;;
+esac
+if [ "$upload_body_bytes" -lt 1048576 ] || [ "$upload_body_bytes" -gt 536870912 ]; then
+  echo "FILESHARE_MAX_UPLOAD_BODY_BYTES must be between 1 MiB and 512 MiB" >&2
+  exit 1
+fi
+sed "s/client_max_body_size 110m;/client_max_body_size ${upload_body_bytes};/" \
+  /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
+
 version="${FILESHARE_VERSION:-v0.0.0}"
 commit="${FILESHARE_GIT_COMMIT:-none}"
 build_time="${FILESHARE_BUILD_TIME:-unknown}"

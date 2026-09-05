@@ -10,26 +10,16 @@ on:
       - '.cnb.yml'
       - '.goreleaser.yaml'
       - 'push.sh'
-  pull_request:
-    types: [opened, reopened, synchronize, labeled, unlabeled]
-    paths-ignore:
-      - '.github/**'
-      - '.cnb/**'
-      - '.cnb.yml'
-      - '.goreleaser.yaml'
-      - 'push.sh'
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: read
 
 jobs:
   update-release-draft:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Update release draft
-        uses: release-drafter/release-drafter@v6 # v6.1.0
+        uses: release-drafter/release-drafter@v7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

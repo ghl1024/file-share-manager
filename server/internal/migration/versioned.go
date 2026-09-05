@@ -23,9 +23,9 @@ import (
 )
 
 const (
-	CurrentVersion    = "202609030001"
+	CurrentVersion    = "202609040001"
 	migrationLockName = "file_share_manager_schema_migration"
-	migrationManifest = "core-schema-v2:file-versions-scan-retry:storage-quarantine:audit-streams:audit-archives:ldap-sync-history:notification-channels:notification-outbox:user-notifications:user-notification-preferences:nodes-ngram-search:backup-compaction:recent-node-access:node-comments:node-comment-mentions:upload-session-dimension-checks"
+	migrationManifest = "core-schema-v2:file-versions-scan-retry:storage-quarantine:audit-streams:audit-archives:ldap-sync-history:notification-channels:notification-outbox:user-notifications:user-notification-preferences:nodes-ngram-search:backup-compaction:recent-node-access:node-comments:node-comment-mentions:upload-session-dimension-checks:ldap-credential-encryption-tls"
 )
 
 type SchemaMigration struct {
@@ -149,6 +149,11 @@ func VerifySchema(db *gorm.DB) error {
 		{&model.OperationLog{}, "stream_seq"},
 		{&model.NotificationChannel{}, "config_ciphertext"},
 		{&model.NotificationOutbox{}, "next_attempt_at"},
+		{&model.LDAPConfig{}, "password_ciphertext"},
+		{&model.LDAPConfig{}, "transport"},
+		{&model.LDAPConfig{}, "tls_ca"},
+		{&model.LDAPConfig{}, "tls_server_name"},
+		{&model.LDAPConfig{}, "tls_min_version"},
 		{&model.BackupJob{}, "trigger"},
 		{&model.BackupJob{}, "compacted_from_id"},
 	}

@@ -33,6 +33,7 @@ type Config struct {
 	Preview       PreviewConfig       `toml:"preview"`
 	BatchDownload BatchDownloadConfig `toml:"batch_download"`
 	JWT           JWTConfig           `toml:"jwt"`
+	LDAPSecurity  LDAPSecurityConfig  `toml:"ldap_security"`
 	Backup        BackupConfig        `toml:"backup"`
 	Archive       ArchiveConfig       `toml:"archive"`
 	Audit         AuditConfig         `toml:"audit"`
@@ -115,6 +116,13 @@ type BatchDownloadConfig struct {
 type JWTConfig struct {
 	Secret       string `toml:"secret"`
 	ExpiresHours int    `toml:"expires_hours"`
+}
+
+// LDAPSecurityConfig contains only external key references. The key itself
+// must be injected through the environment and is never stored in MySQL.
+type LDAPSecurityConfig struct {
+	CredentialEncryptionKey         string `toml:"credential_encryption_key"`
+	PreviousCredentialEncryptionKey string `toml:"previous_credential_encryption_key"`
 }
 
 type BackupConfig struct {
@@ -485,6 +493,11 @@ func applyEnv(cfg *Config) error {
 	setString("FILESHARE_AUDIT_DB_PASSWORD", &cfg.AuditDatabase.Password)
 	setString("FILESHARE_AUDIT_DB_NAME", &cfg.AuditDatabase.DBName)
 	setString("FILESHARE_JWT_SECRET", &cfg.JWT.Secret)
+	setString("FILESHARE_LDAP_CREDENTIAL_KEY", &cfg.LDAPSecurity.CredentialEncryptionKey)
+	setString("FILESHARE_LDAP_PREVIOUS_CREDENTIAL_KEY", &cfg.LDAPSecurity.PreviousCredentialEncryptionKey)
+	if err := setInt64("FILESHARE_MAX_UPLOAD_BODY_BYTES", &cfg.Server.MaxUploadBodyBytes); err != nil {
+		return err
+	}
 	setString("FILESHARE_WEB_URL", &cfg.Server.WebURL)
 	if value := strings.TrimSpace(os.Getenv("FILESHARE_TRUSTED_PROXIES")); value != "" {
 		cfg.Server.TrustedProxies = strings.Split(value, ",")
@@ -732,6 +745,18 @@ func validate(cfg *Config) error {
 		key, err := base64.StdEncoding.DecodeString(strings.TrimSpace(cfg.Notification.CredentialEncryptionKey))
 		if err != nil || len(key) != 32 {
 			return fmt.Errorf("notification.credential_encryption_key must be base64-encoded 32 bytes")
+		}
+	}
+	for name, value := range map[string]string{
+		"ldap_security.credential_encryption_key":          cfg.LDAPSecurity.CredentialEncryptionKey,
+		"ldap_security.previous_credential_encryption_key": cfg.LDAPSecurity.PreviousCredentialEncryptionKey,
+	} {
+		if strings.TrimSpace(value) == "" {
+			continue
+		}
+		key, err := base64.StdEncoding.DecodeString(strings.TrimSpace(value))
+		if err != nil || len(key) != 32 {
+			return fmt.Errorf("%s must be base64-encoded 32 bytes", name)
 		}
 	}
 	switch strings.ToLower(cfg.Backup.Type) {

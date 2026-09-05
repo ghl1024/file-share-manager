@@ -13,6 +13,7 @@ package security
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"unicode"
 	"unicode/utf8"
 
@@ -28,6 +29,11 @@ var commonPasswords = map[string]struct{}{
 	"12345678": {}, "123456789": {}, "admin123": {}, "password": {},
 	"password123": {}, "qwerty123": {}, "letmein": {},
 }
+
+var (
+	dummyPasswordOnce sync.Once
+	dummyPasswordHash string
+)
 
 func ValidatePassword(password string) error {
 	length := utf8.RuneCountInString(password)
@@ -75,4 +81,21 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+// PerformDummyPasswordCheck keeps unknown, disabled and externally managed
+// accounts on a comparable local password-check path without authenticating
+// any real account.
+func PerformDummyPasswordCheck(password string) {
+	generated := false
+	dummyPasswordOnce.Do(func() {
+		hash, err := bcrypt.GenerateFromPassword([]byte("fileshare-dummy-password-check"), 12)
+		if err == nil {
+			dummyPasswordHash = string(hash)
+			generated = true
+		}
+	})
+	if !generated && dummyPasswordHash != "" {
+		_ = bcrypt.CompareHashAndPassword([]byte(dummyPasswordHash), []byte(password))
+	}
 }

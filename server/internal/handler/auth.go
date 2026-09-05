@@ -427,13 +427,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 	ldapAuthenticated := false
+	credentialCheckPerformed := false
 	if user == nil || user.Source == "ldap" {
 		ldapCfg, ldapCfgErr := h.ldapConfigDAO.RuntimeConfig()
 		if ldapCfgErr != nil {
-			response.InternalError(c, "查询 LDAP 配置失败", ldapCfgErr)
-			return
+			logger.Error("ldap_login_config_unavailable", "error", ldapCfgErr)
 		}
-		if ldapCfg.Enabled() {
+		if ldapCfgErr == nil && ldapCfg.Enabled() {
+			credentialCheckPerformed = true
 			identity, ldapErr := h.ldap.Authenticate(c.Request.Context(), ldapCfg, req.Username, req.Password)
 			if ldapErr == nil {
 				ldapAuthenticated = true
@@ -452,14 +453,19 @@ func (h *AuthHandler) Login(c *gin.Context) {
 					response.InternalError(c, "同步 LDAP 用户资料失败", err)
 					return
 				}
-			} else if user == nil {
-				response.Unauthorized(c, "用户名或密码错误")
-				return
 			}
 		}
 	}
-	if user == nil || user.Status != 1 || (user.Source == "ldap" && !ldapAuthenticated) || (user.Source != "ldap" && !security.CheckPasswordHash(req.Password, user.PasswordHash)) {
-		response.Unauthorized(c, "用户名或密码错误，或账号已被禁用")
+	localAuthenticated := false
+	if user != nil && user.Source != "ldap" {
+		credentialCheckPerformed = true
+		localAuthenticated = security.CheckPasswordHash(req.Password, user.PasswordHash)
+	}
+	if !credentialCheckPerformed {
+		security.PerformDummyPasswordCheck(req.Password)
+	}
+	if user == nil || user.Status != 1 || (user.Source == "ldap" && !ldapAuthenticated) || (user.Source != "ldap" && !localAuthenticated) {
+		response.Unauthorized(c, "用户名或密码错误")
 		return
 	}
 

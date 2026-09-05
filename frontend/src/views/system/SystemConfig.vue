@@ -412,10 +412,30 @@
         <el-divider content-position="left">服务器连接</el-divider>
 
         <el-form-item label="主机地址" prop="host">
-          <el-input v-model="ldapForm.host" placeholder="ldap.example.com 或 ldap://ldap.example.com:389" clearable />
+          <el-input v-model="ldapForm.host" placeholder="ldap.example.com 或 ldaps://ldap.example.com" clearable />
         </el-form-item>
         <el-form-item label="端口" prop="port">
           <el-input-number v-model="ldapForm.port" :min="1" :max="65535" :controls="false" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="传输模式" prop="transport">
+          <el-select v-model="ldapForm.transport" style="width: 100%">
+            <el-option label="StartTLS（推荐，LDAP 389）" value="starttls" />
+            <el-option label="LDAPS（TLS 636）" value="ldaps" />
+            <el-option label="明文 LDAP（仅开发环境）" value="plain" />
+          </el-select>
+          <div class="form-help">生产模式禁止明文 LDAP；证书校验默认使用系统 CA。</div>
+        </el-form-item>
+        <el-form-item v-if="ldapForm.transport !== 'plain'" label="TLS 服务器名" prop="tls_server_name">
+          <el-input v-model="ldapForm.tls_server_name" placeholder="留空则使用主机名" clearable />
+        </el-form-item>
+        <el-form-item v-if="ldapForm.transport !== 'plain'" label="最低 TLS 版本" prop="tls_min_version">
+          <el-select v-model="ldapForm.tls_min_version" style="width: 100%">
+            <el-option label="TLS 1.2" value="1.2" />
+            <el-option label="TLS 1.3" value="1.3" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="ldapForm.transport !== 'plain'" label="自定义 CA" prop="tls_ca">
+          <el-input v-model="ldapForm.tls_ca" type="textarea" :rows="4" placeholder="可选，粘贴 PEM 格式 CA 证书" />
         </el-form-item>
         <el-form-item label="管理员 DN" prop="admin_dn">
           <el-input v-model="ldapForm.admin_dn" placeholder="cn=admin,dc=example,dc=com" clearable />
@@ -571,7 +591,9 @@ const ldapConnectionText = computed(() => {
   const ldap = config.value.ldap || {}
   const host = String(ldap.host || '').trim()
   if (!host) return '-'
-  return host.includes('://') ? host : `${host}:${ldap.port || 389}`
+  const transport = String(ldap.transport || 'starttls').toLowerCase()
+  const label = transport === 'ldaps' ? 'LDAPS' : transport === 'plain' ? 'LDAP' : 'StartTLS'
+  return `${label} · ${host.includes('://') ? host.replace(/^\w+:\/\//, '') : `${host}:${ldap.port || 389}`}`
 })
 const activeSection = computed(() => route.meta?.systemSection || 'overview')
 const visibleDependencyCards = computed(() => {
@@ -836,6 +858,10 @@ function defaultLDAPForm() {
     port: 389,
     admin_dn: '',
     password: '',
+    transport: 'starttls',
+    tls_ca: '',
+    tls_server_name: '',
+    tls_min_version: '1.2',
     base_dn: '',
     user_filter: '(&(objectClass=user)(sAMAccountName=*))',
     username_attr: 'sAMAccountName',
@@ -869,6 +895,10 @@ function normalizeLDAPConfig(value = {}) {
     ...value,
     port: Number(value.port || defaults.port),
     password: '',
+    transport: String(value.transport || defaults.transport).toLowerCase(),
+    tls_ca: String(value.tls_ca || ''),
+    tls_server_name: String(value.tls_server_name || ''),
+    tls_min_version: String(value.tls_min_version || defaults.tls_min_version),
     real_name_attr: value.real_name_attr || value.realname_attr || defaults.real_name_attr,
     sync_cron: value.sync_cron || defaults.sync_cron,
     sync_workspace_id: value.sync_workspace_id ? Number(value.sync_workspace_id) : null,
@@ -893,6 +923,10 @@ function prepareLDAPPayload(value = {}) {
     port: Number(source.port || 389),
     admin_dn: String(source.admin_dn || '').trim(),
     password: String(source.password || ''),
+    transport: String(source.transport || defaults.transport).toLowerCase(),
+    tls_ca: String(source.tls_ca || '').trim(),
+    tls_server_name: String(source.tls_server_name || '').trim(),
+    tls_min_version: String(source.tls_min_version || defaults.tls_min_version),
     base_dn: String(source.base_dn || '').trim(),
     user_filter: String(source.user_filter || '').trim(),
     username_attr: String(source.username_attr || '').trim(),

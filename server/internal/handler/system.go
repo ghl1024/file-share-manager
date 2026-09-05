@@ -70,12 +70,13 @@ func (h *SystemHandler) Config(c *gin.Context) {
 		return
 	}
 	response.Success(c, gin.H{
-		"ldap":         ldapConfigResponse(ldapConfig),
-		"backup":       gin.H{"type": cfg.Backup.Type, "local_path": cfg.Backup.LocalPath, "endpoint": cfg.Backup.Endpoint, "bucket": cfg.Backup.Bucket, "region": cfg.Backup.Region, "prefix": cfg.Backup.Prefix, "configured": backupConfigured(cfg), "manifest_encryption_enabled": strings.TrimSpace(cfg.Backup.ManifestEncryptionKey) != "", "manifest_format": "gzip + AES-256-GCM", "compaction_enabled": cfg.Backup.CompactionEnabled, "compaction_interval_minutes": cfg.Backup.CompactionIntervalMin, "compaction_incremental_threshold": cfg.Backup.CompactionThreshold},
-		"archive":      gin.H{"enabled": cfg.Archive.Enabled, "primary_mode": cfg.Storage.Mode, "after_days": cfg.Archive.AfterDays, "batch_size": cfg.Archive.BatchSize, "prefix": cfg.Archive.Prefix},
-		"clamav":       gin.H{"enabled": cfg.ClamAV.Enabled(), "host": cfg.ClamAV.Host, "port": cfg.ClamAV.Port, "timeout_seconds": cfg.ClamAV.TimeoutSeconds, "virus_db_max_age_hours": cfg.ClamAV.VirusDBMaxAgeHours, "retry": clamavRetry},
-		"notification": gin.H{"credential_encryption_configured": strings.TrimSpace(cfg.Notification.CredentialEncryptionKey) != "", "worker_count": cfg.Notification.WorkerCount, "poll_interval_seconds": cfg.Notification.PollIntervalSeconds, "max_attempts": cfg.Notification.MaxAttempts},
-		"lifecycle":    gin.H{"quarantine_retention_days": cfg.Lifecycle.QuarantineRetentionDays, "reconcile_batch_size": cfg.Lifecycle.ReconcileBatchSize},
+		"ldap":          ldapConfigResponse(ldapConfig),
+		"ldap_security": gin.H{"credential_encryption_configured": strings.TrimSpace(cfg.LDAPSecurity.CredentialEncryptionKey) != "", "previous_credential_configured": strings.TrimSpace(cfg.LDAPSecurity.PreviousCredentialEncryptionKey) != ""},
+		"backup":        gin.H{"type": cfg.Backup.Type, "local_path": cfg.Backup.LocalPath, "endpoint": cfg.Backup.Endpoint, "bucket": cfg.Backup.Bucket, "region": cfg.Backup.Region, "prefix": cfg.Backup.Prefix, "configured": backupConfigured(cfg), "manifest_encryption_enabled": strings.TrimSpace(cfg.Backup.ManifestEncryptionKey) != "", "manifest_format": "gzip + AES-256-GCM", "compaction_enabled": cfg.Backup.CompactionEnabled, "compaction_interval_minutes": cfg.Backup.CompactionIntervalMin, "compaction_incremental_threshold": cfg.Backup.CompactionThreshold},
+		"archive":       gin.H{"enabled": cfg.Archive.Enabled, "primary_mode": cfg.Storage.Mode, "after_days": cfg.Archive.AfterDays, "batch_size": cfg.Archive.BatchSize, "prefix": cfg.Archive.Prefix},
+		"clamav":        gin.H{"enabled": cfg.ClamAV.Enabled(), "host": cfg.ClamAV.Host, "port": cfg.ClamAV.Port, "timeout_seconds": cfg.ClamAV.TimeoutSeconds, "virus_db_max_age_hours": cfg.ClamAV.VirusDBMaxAgeHours, "retry": clamavRetry},
+		"notification":  gin.H{"credential_encryption_configured": strings.TrimSpace(cfg.Notification.CredentialEncryptionKey) != "", "worker_count": cfg.Notification.WorkerCount, "poll_interval_seconds": cfg.Notification.PollIntervalSeconds, "max_attempts": cfg.Notification.MaxAttempts},
+		"lifecycle":     gin.H{"quarantine_retention_days": cfg.Lifecycle.QuarantineRetentionDays, "reconcile_batch_size": cfg.Lifecycle.ReconcileBatchSize},
 	})
 }
 
@@ -132,6 +133,10 @@ func (h *SystemHandler) SaveLDAP(c *gin.Context) {
 		Port:             req.Port,
 		AdminDN:          req.AdminDN,
 		Password:         req.Password,
+		Transport:        req.Transport,
+		TLSCA:            req.TLSCA,
+		TLSServerName:    req.TLSServerName,
+		TLSMinVersion:    req.TLSMinVersion,
 		BaseDN:           req.BaseDN,
 		UserFilter:       req.UserFilter,
 		UsernameAttr:     req.UsernameAttr,
@@ -148,6 +153,20 @@ func (h *SystemHandler) SaveLDAP(c *gin.Context) {
 	}
 	if strings.TrimSpace(cfg.Password) == "" && existing != nil {
 		cfg.Password = existing.Password
+	}
+	if existing != nil {
+		if strings.TrimSpace(cfg.Transport) == "" {
+			cfg.Transport = existing.Transport
+		}
+		if strings.TrimSpace(cfg.TLSCA) == "" {
+			cfg.TLSCA = existing.TLSCA
+		}
+		if strings.TrimSpace(cfg.TLSServerName) == "" {
+			cfg.TLSServerName = existing.TLSServerName
+		}
+		if strings.TrimSpace(cfg.TLSMinVersion) == "" {
+			cfg.TLSMinVersion = existing.TLSMinVersion
+		}
 	}
 	if strings.TrimSpace(cfg.SyncCron) == "" && existing != nil {
 		cfg.SyncCron = existing.SyncCron
@@ -238,11 +257,29 @@ func (h *SystemHandler) LDAPTest(c *gin.Context) {
 	if strings.TrimSpace(req.Password) == "" && existing != nil {
 		req.Password = existing.Password
 	}
+	if existing != nil {
+		if strings.TrimSpace(req.Transport) == "" {
+			req.Transport = existing.Transport
+		}
+		if strings.TrimSpace(req.TLSCA) == "" {
+			req.TLSCA = existing.TLSCA
+		}
+		if strings.TrimSpace(req.TLSServerName) == "" {
+			req.TLSServerName = existing.TLSServerName
+		}
+		if strings.TrimSpace(req.TLSMinVersion) == "" {
+			req.TLSMinVersion = existing.TLSMinVersion
+		}
+	}
 	cfg := &model.LDAPConfig{
 		Host:             req.Host,
 		Port:             req.Port,
 		AdminDN:          req.AdminDN,
 		Password:         req.Password,
+		Transport:        req.Transport,
+		TLSCA:            req.TLSCA,
+		TLSServerName:    req.TLSServerName,
+		TLSMinVersion:    req.TLSMinVersion,
 		BaseDN:           req.BaseDN,
 		UserFilter:       req.UserFilter,
 		UsernameAttr:     req.UsernameAttr,
@@ -366,6 +403,10 @@ type ldapConfigRequest struct {
 	Port             int    `json:"port" binding:"omitempty,min=1,max=65535"`
 	AdminDN          string `json:"admin_dn" binding:"omitempty,max=255"`
 	Password         string `json:"password" binding:"omitempty,max=255"`
+	Transport        string `json:"transport" binding:"omitempty,oneof=plain starttls ldaps"`
+	TLSCA            string `json:"tls_ca" binding:"omitempty,max=20000"`
+	TLSServerName    string `json:"tls_server_name" binding:"omitempty,max=255"`
+	TLSMinVersion    string `json:"tls_min_version" binding:"omitempty,oneof=1.2 1.3"`
 	BaseDN           string `json:"base_dn" binding:"omitempty,max=255"`
 	UserFilter       string `json:"user_filter" binding:"omitempty,max=255"`
 	UsernameAttr     string `json:"username_attr" binding:"omitempty,max=64"`
@@ -387,27 +428,32 @@ func ldapConfigResponse(cfg *model.LDAPConfig) gin.H {
 	}
 	runtimeConfig := dao.LDAPRuntimeConfig(cfg)
 	return gin.H{
-		"id":                 cfg.ID,
-		"host":               cfg.Host,
-		"port":               cfg.Port,
-		"admin_dn":           cfg.AdminDN,
-		"base_dn":            cfg.BaseDN,
-		"user_filter":        cfg.UserFilter,
-		"username_attr":      cfg.UsernameAttr,
-		"email_attr":         cfg.EmailAttr,
-		"real_name_attr":     cfg.RealNameAttr,
-		"realname_attr":      cfg.RealNameAttr,
-		"sync_cron":          cfg.SyncCron,
-		"sync_workspace_id":  cfg.SyncWorkspaceID,
-		"group_sync_enabled": cfg.GroupSyncEnabled,
-		"group_base_dn":      cfg.GroupBaseDN,
-		"group_filter":       cfg.GroupFilter,
-		"group_name_attr":    cfg.GroupNameAttr,
-		"group_member_attr":  cfg.GroupMemberAttr,
-		"status":             cfg.Status,
-		"enabled":            cfg.Status == 1 && runtimeConfig.Enabled(),
-		"created_at":         cfg.CreatedAt,
-		"updated_at":         cfg.UpdatedAt,
+		"id":                  cfg.ID,
+		"host":                cfg.Host,
+		"port":                cfg.Port,
+		"admin_dn":            cfg.AdminDN,
+		"transport":           cfg.Transport,
+		"tls_ca_configured":   strings.TrimSpace(cfg.TLSCA) != "",
+		"tls_server_name":     cfg.TLSServerName,
+		"tls_min_version":     cfg.TLSMinVersion,
+		"base_dn":             cfg.BaseDN,
+		"user_filter":         cfg.UserFilter,
+		"username_attr":       cfg.UsernameAttr,
+		"email_attr":          cfg.EmailAttr,
+		"real_name_attr":      cfg.RealNameAttr,
+		"realname_attr":       cfg.RealNameAttr,
+		"sync_cron":           cfg.SyncCron,
+		"sync_workspace_id":   cfg.SyncWorkspaceID,
+		"group_sync_enabled":  cfg.GroupSyncEnabled,
+		"group_base_dn":       cfg.GroupBaseDN,
+		"group_filter":        cfg.GroupFilter,
+		"group_name_attr":     cfg.GroupNameAttr,
+		"group_member_attr":   cfg.GroupMemberAttr,
+		"status":              cfg.Status,
+		"password_configured": strings.TrimSpace(cfg.Password) != "" || strings.TrimSpace(cfg.PasswordCiphertext) != "",
+		"enabled":             cfg.Status == 1 && runtimeConfig.Enabled(),
+		"created_at":          cfg.CreatedAt,
+		"updated_at":          cfg.UpdatedAt,
 	}
 }
 
@@ -418,6 +464,13 @@ func validateLDAPConfig(cfg *model.LDAPConfig) error {
 	}
 	if cfg.Status == 0 {
 		return nil
+	}
+	allowPlaintext := true
+	if runtimeConfig := config.GetConfig(); runtimeConfig != nil {
+		allowPlaintext = runtimeConfig.Server.Mode != "release"
+	}
+	if err := ldapservice.ValidateConfig(normalized, allowPlaintext); err != nil {
+		return errString(err.Error())
 	}
 	if normalized.Port < 1 || normalized.Port > 65535 {
 		return errString("LDAP 端口必须在 1 到 65535 之间")
